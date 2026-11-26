@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Profil Muslimah | Jurnal Ramadhan 1448 H</title>
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="print.css">
+  <style>
+    /* Gaya khusus profil */
+    .atas {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: var(--space-5);
+      align-items: start;
+    }
+
+    /* Dua halaman profil */
+    .tab-baris {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #ffffff;
+    }
+
+    .tab-baris button {
+      min-height: 44px;
+      padding: 0 var(--space-2);
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--green);
+      font: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .tab-baris button[aria-selected="true"] { background: var(--sage); }
+
+    .lembar-profil { position: relative; overflow: hidden; }
+
+    /* Cahaya lembut yang bergerak pelan di sudut kartu */
+    .lembar-profil::before {
+      content: "";
+      position: absolute;
+      top: -70px;
+      right: -70px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--rose-light), transparent 70%);
+      animation: denyut 6s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    #hal2::before { background: radial-gradient(circle, var(--lav-light), transparent 70%); }
+
+    @keyframes denyut {
+      from { transform: scale(0.8) translate(0, 0); opacity: 0.6; }
+      to { transform: scale(1.25) translate(-24px, 20px); opacity: 1; }
+    }
+
+    .lembar-profil > * { position: relative; }
+
+    .judul-lembar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+
+    .judul-lembar img { width: 44px; height: 44px; animation: goyang 4s ease-in-out infinite alternate; }
+    .judul-lembar h2 { margin: 0; font-size: 1.3rem; }
+
+    @keyframes goyang {
+      from { transform: rotate(-6deg) translateY(0); }
+      to { transform: rotate(6deg) translateY(-5px); }
+    }
+
+    .lanjut { text-align: center; }
+
+    .foto-blok { position: relative; text-align: center; }
+
+    /* Bingkai pastel yang berputar pelan di sekeliling foto */
+    .kilau {
+      position: absolute;
+      z-index: 0;
+      top: -5px;
+      left: -5px;
+      right: -5px;
+      aspect-ratio: 3 / 4;
+      overflow: hidden;
+      border-radius: 24px;
+    }
+
+    .kilau::before {
+      content: "";
+      position: absolute;
+      inset: -50%;
+      background: conic-gradient(var(--sage), var(--honey), var(--rose), var(--lav), var(--sage));
+      animation: putar 14s linear infinite;
+    }
+
+    @keyframes putar { to { transform: rotate(360deg); } }
+
+    .foto-blok .kotak-foto { z-index: 1; border-color: transparent; }
+
+    .kotak-foto {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 3 / 4;
+      overflow: hidden;
+      border: 2px dashed #86ae92;
+      border-radius: var(--radius);
+      background: var(--sage-light);
+      color: var(--green);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .kotak-foto img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Input file tidak terlihat, tetapi tetap bisa dipilih dengan keyboard */
+    #foto {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+
+    #foto:focus-visible + .kotak-foto {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .hapus-foto {
+      min-height: 44px;
+      border: 0;
+      background: none;
+      color: #8c4c66;
+      font: inherit;
+      font-size: 0.9rem;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .dua-kolom {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 var(--space-4);
+    }
+
+    .simpan { text-align: center; }
+
+    .status {
+      min-height: 1.7em;
+      margin: var(--space-3) 0 0;
+      font-weight: 600;
+    }
+
+    .status.sukses { color: var(--green-mid); }
+    .status.gagal { color: #a03a52; }
+
+    @media (max-width: 560px) {
+      .atas { grid-template-columns: 1fr; }
+      .foto-blok { width: 170px; margin: 0 auto; }
+    }
+
+    @media print {
+      .atas { grid-template-columns: 38mm 1fr; gap: 5mm; }
+      .foto-blok { width: auto; margin: 0; }
+      .kotak-foto { border-style: solid; }
+      .kilau, .lembar-profil::before { display: none; }
+      .lembar-profil[hidden] { display: block !important; }
+      #hal2 { page-break-before: always; break-before: page; }
+      .judul-lembar { margin: 3mm 0 2mm; }
+      .judul-lembar img { width: 9mm; height: 9mm; animation: none; }
+      .foto-blok .kotak-foto { border-color: #86ae92; }
+      .field { margin-bottom: 2.5mm; }
+      .field input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) { min-height: 8mm; padding: 1mm; }
+      .field textarea { min-height: 24mm; }
+    }
+  </style>
+</head>
+<body data-aksen>
+  <nav class="nav-bar" aria-label="Navigasi utama">
+    <a class="nav-title" href="index.html">Jurnal Ramadhan</a>
+    <a href="menu.html">Menu</a>
+    <a href="profil.html" aria-current="page">Profil</a>
+    <a href="tracker.html">Tracker</a>
+  </nav>
+
+  <main class="page">
+    <header class="page-header page-header-hias">
+      <div class="logo-bar">
+        <img src="assets/logo-fmdki.png" alt="Logo FMDKI">
+        <img src="assets/logo-karimah.png" alt="Logo KARIMAH">
+      </div>
+      <h1>Profil Muslimah</h1>
+      <p class="quote">Jurnal Ramadhan 1448 H, Space to Breathe</p>
+    </header>
+
+    <!-- data-autoload: storage.js mengisi kolom teks saat halaman dibuka -->
+    <form id="formProfil" data-autoload="profil" autocomplete="off">
+      <div class="tab-baris no-print" role="tablist" aria-label="Halaman profil">
+        <button type="button" role="tab" id="tab1" aria-controls="hal1" aria-selected="true">1. Tentang Aku</button>
+        <button type="button" role="tab" id="tab2" aria-controls="hal2" aria-selected="false">2. Kampus &amp; Medsos</button>
+      </div>
+
+      <section class="card lembar-profil" id="hal1" role="tabpanel" aria-labelledby="tab1">
+      <div class="atas">
+        <div class="foto-blok">
+          <input type="file" id="foto" accept="image/*">
+          <span class="kilau" aria-hidden="true"></span>
+          <label class="kotak-foto" for="foto">
+            <span id="teksFoto">Pilih fotoku</span>
+            <img id="pratinjau" alt="Foto profil" hidden>
+          </label>
+          <button class="hapus-foto" type="button" id="hapusFoto" hidden>Hapus foto</button>
+        </div>
+
+        <div>
+          <div class="field">
+            <label for="nama">Nama lengkap</label>
+            <input id="nama" name="nama" type="text">
+          </div>
+          <div class="field">
+            <label for="panggilan">Nama panggilan</label>
+            <input id="panggilan" name="panggilan" type="text">
+          </div>
+          <div class="dua-kolom">
+            <div class="field">
+              <label for="tempatLahir">Tempat lahir</label>
+              <input id="tempatLahir" name="tempatLahir" type="text">
+            </div>
+            <div class="field">
+              <label for="tanggalLahir">Tanggal lahir</label>
+              <input id="tanggalLahir" name="tanggalLahir" type="date">
+            </div>
+          </div>
+          <div class="field">
+            <label for="hobby">Hobby</label>
+            <input id="hobby" name="hobby" type="text">
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="ayat">Ayat / Hadits favourite</label>
+        <textarea id="ayat" name="ayat" dir="auto"></textarea>
+      </div>
+      <div class="field">
+        <label for="motto">Motto hidup</label>
+        <textarea id="motto" name="motto"></textarea>
+      </div>
+
+      <p class="lanjut no-print"><button class="btn-gold" type="button" id="keHal2">Halaman berikutnya &rsaquo;</button></p>
+      </section>
+
+      <section class="card lembar-profil" id="hal2" role="tabpanel" aria-labelledby="tab2" hidden>
+        <div class="judul-lembar">
+          <img src="assets/ikon-laptop.svg" alt="">
+          <h2>Kampusku</h2>
+        </div>
+        <div class="field">
+          <label for="kampus">Kampus</label>
+          <input id="kampus" name="kampus" type="text">
+        </div>
+        <div class="dua-kolom">
+          <div class="field">
+            <label for="jurusan">Jurusan</label>
+            <input id="jurusan" name="jurusan" type="text">
+          </div>
+          <div class="field">
+            <label for="angkatan">Angkatan</label>
+            <input id="angkatan" name="angkatan" type="text" inputmode="numeric" maxlength="20">
+          </div>
+        </div>
+        <div class="field">
+          <label for="asalDaerah">Asal daerah</label>
+          <input id="asalDaerah" name="asalDaerah" type="text">
+        </div>
+
+        <div class="judul-lembar">
+          <img src="assets/ikon-hati.svg" alt="">
+          <h2>Medsosku</h2>
+        </div>
+        <div class="dua-kolom">
+          <div class="field">
+            <label for="instagram">Instagram</label>
+            <input id="instagram" name="instagram" type="text" placeholder="@namaku" autocapitalize="none" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="tiktok">TikTok</label>
+            <input id="tiktok" name="tiktok" type="text" placeholder="@namaku" autocapitalize="none" spellcheck="false">
+          </div>
+        </div>
+        <div class="field">
+          <label for="medsosLain">Medsos lainnya</label>
+          <input id="medsosLain" name="medsosLain" type="text" placeholder="Misalnya Telegram, YouTube, X">
+        </div>
+        <div class="field">
+          <label for="harapan">Harapanku untuk kampus dan daerahku</label>
+          <textarea id="harapan" name="harapan"></textarea>
+        </div>
+        <p class="lanjut no-print"><button class="btn-gold" type="button" id="keHal1">&lsaquo; Halaman sebelumnya</button></p>
+      </section>
+
+      <div class="simpan no-print">
+        <button class="btn-primary" type="submit">Simpan Profilku</button>
+        <p class="status" id="status" role="status"></p>
+      </div>
+    </form>
+  </main>
+
+  <script src="transisi.js"></script>
+  <script src="storage.js"></script>
+  <script>
+    const form = document.getElementById("formProfil");
+    const inputFoto = document.getElementById("foto");
+    const pratinjau = document.getElementById("pratinjau");
+    const teksFoto = document.getElementById("teksFoto");
+    const hapusFoto = document.getElementById("hapusFoto");
+    const statusSimpan = document.getElementById("status");
+
+    const SISI_FOTO = 480; // piksel; foto dikecilkan supaya localStorage tidak penuh
+    let fotoData = "";     // foto dalam bentuk teks, kosong kalau belum ada
+
+    function tulisStatus(teks, jenis) {
+      statusSimpan.textContent = teks;
+      statusSimpan.className = "status " + (jenis || "");
+    }
+
+    function tampilkanFoto(data) {
+      fotoData = data;
+      pratinjau.hidden = !data;
+      teksFoto.hidden = !!data;
+      hapusFoto.hidden = !data;
+      if (data) pratinjau.src = data;
+      else pratinjau.removeAttribute("src");
+    }
+
+    /* 1. Mengecilkan foto lewat canvas, hasilnya teks JPEG */
+    function kecilkanFoto(file) {
+      return new Promise(function (berhasil, gagal) {
+        const alamat = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = function () {
+          URL.revokeObjectURL(alamat);
+          const skala = Math.min(1, SISI_FOTO / Math.max(img.naturalWidth, img.naturalHeight));
+          const kanvas = document.createElement("canvas");
+          kanvas.width = Math.max(1, Math.round(img.naturalWidth * skala));
+          kanvas.height = Math.max(1, Math.round(img.naturalHeight * skala));
+          const ctx = kanvas.getContext("2d");
+          ctx.fillStyle = "#ffffff"; // PNG transparan jadi berlatar putih
+          ctx.fillRect(0, 0, kanvas.width, kanvas.height);
+          ctx.drawImage(img, 0, 0, kanvas.width, kanvas.height);
+          berhasil(kanvas.toDataURL("image/jpeg", 0.85));
+        };
+        img.onerror = function () {
+          URL.revokeObjectURL(alamat);
+          gagal(new Error("File bukan gambar yang didukung"));
+        };
+        img.src = alamat;
+      });
+    }
+
+    inputFoto.addEventListener("change", async function () {
+      const file = inputFoto.files[0];
+      inputFoto.value = ""; // supaya foto yang sama bisa dipilih lagi
+      if (!file) return;
+      try {
+        tampilkanFoto(await kecilkanFoto(file));
+        tulisStatus("Foto belum disimpan. Klik Simpan Profilku, ya.");
+      } catch (err) {
+        tulisStatus("Foto tidak bisa dibuka. Coba pakai JPG atau PNG.", "gagal");
+      }
+    });
+
+    hapusFoto.addEventListener("click", function () {
+      tampilkanFoto("");
+      inputFoto.focus();
+      tulisStatus("Foto dihapus. Klik Simpan Profilku untuk menyimpan perubahan.");
+    });
+
+    /* 1b. Pindah halaman profil */
+    function bukaHalaman(nomor) {
+      [1, 2].forEach(function (n) {
+        document.getElementById("hal" + n).hidden = n !== nomor;
+        const tab = document.getElementById("tab" + n);
+        tab.setAttribute("aria-selected", n === nomor);
+        tab.tabIndex = n === nomor ? 0 : -1;
+      });
+      const lembar = document.getElementById("hal" + nomor);
+      const tanpaGerak = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (lembar.animate && !tanpaGerak) {
+        lembar.animate(
+          [{ opacity: 0, transform: "translateX(" + (nomor === 2 ? 36 : -36) + "px)" }, { opacity: 1, transform: "none" }],
+          { duration: 420, easing: "ease-out" }
+        );
+      }
+      Suara.kertas();
+    }
+
+    document.getElementById("tab1").addEventListener("click", function () { bukaHalaman(1); });
+    document.getElementById("tab2").addEventListener("click", function () { bukaHalaman(2); });
+    document.querySelector(".tab-baris").addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      const nomor = e.key === "ArrowRight" ? 2 : 1;
+      bukaHalaman(nomor);
+      document.getElementById("tab" + nomor).focus();
+    });
+
+    function pindahHalaman(nomor) {
+      bukaHalaman(nomor);
+      document.getElementById("tab" + nomor).focus({ preventScroll: true });
+      document.querySelector(".tab-baris").scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+    document.getElementById("keHal2").addEventListener("click", function () { pindahHalaman(2); });
+    document.getElementById("keHal1").addEventListener("click", function () { pindahHalaman(1); });
+
+    /* 2. Simpan */
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const data = bacaForm(form); // semua kolom teks
+      data.foto = fotoData;
+      if (saveProfil(data)) tulisStatus("Tersimpan!", "sukses");
+      else tulisStatus("Gagal menyimpan. Memori browser penuh atau diblokir.", "gagal");
+    });
+
+    // Pesan "Tersimpan!" hilang begitu ada isian yang diubah lagi
+    form.addEventListener("input", function (e) {
+      if (e.target !== inputFoto) tulisStatus("");
+    });
+
+    /* 3. Foto dimuat di sini; kolom teks sudah dimuat storage.js */
+    const fotoTersimpan = loadProfil().foto;
+    if (typeof fotoTersimpan === "string" && fotoTersimpan.startsWith("data:image/")) {
+      tampilkanFoto(fotoTersimpan);
+    }
+  </script>
+</body>
+</html>

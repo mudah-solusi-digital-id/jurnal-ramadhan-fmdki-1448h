@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Infografis | Jurnal Ramadhan 1448 H</title>
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="print.css">
+  <style>
+    @font-face {
+      font-family: "Uthmanic Hafs";
+      src: url("https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2") format("woff2");
+      font-display: swap;
+    }
+
+    /* Gaya khusus infografis */
+    .judul-info {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin: var(--space-6) 0 var(--space-3);
+    }
+
+    .judul-info img { width: 52px; height: 52px; animation: goyang-info 4s ease-in-out infinite alternate; }
+    .judul-info h2 { margin: 0; }
+
+    @keyframes goyang-info {
+      from { transform: rotate(-5deg); }
+      to { transform: rotate(5deg) translateY(-4px); }
+    }
+
+    .poin {
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: var(--space-4);
+      align-items: start;
+    }
+
+    .nomor {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #ffffff;
+      color: var(--green);
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .poin h3 { margin-bottom: var(--space-1); }
+    .poin p { margin-bottom: var(--space-1); }
+    .sumber { color: var(--text-soft); font-size: 0.85rem; }
+
+    .buka-dalil {
+      min-height: 44px;
+      margin-top: var(--space-1);
+      padding: 0 var(--space-4);
+      border: 1.5px solid rgba(36, 69, 58, 0.25);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.85);
+      color: var(--green);
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .buka-dalil:hover { background: #ffffff; }
+
+    .amalan {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+      gap: var(--space-3);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .amalan button {
+      width: 100%;
+      height: 100%;
+      min-height: 112px;
+      padding: var(--space-3);
+      border: 1.5px solid var(--lav);
+      border-radius: 18px;
+      background: var(--lav-light);
+      color: var(--green);
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.25s ease;
+    }
+
+    .amalan button:hover { transform: translateY(-4px); }
+    .amalan li:nth-child(4n + 2) button { border-color: var(--honey); background: var(--honey-light); }
+    .amalan li:nth-child(4n + 3) button { border-color: var(--rose); background: var(--rose-light); }
+    .amalan li:nth-child(4n) button { border-color: var(--sage); background: var(--sage-light); }
+    .amalan b { display: block; font-size: 1.8rem; font-weight: 400; line-height: 1.4; }
+
+    /* --- Pop up di tengah layar --- */
+    .popup {
+      width: min(600px, calc(100% - 24px));
+      max-height: calc(100% - 32px);
+      padding: 0;
+      border: 0;
+      border-radius: 26px;
+      background: #ffffff;
+      color: var(--text);
+      box-shadow: 0 24px 70px rgba(63, 102, 80, 0.28);
+      overflow: hidden;
+    }
+
+    .popup[open] { display: flex; flex-direction: column; animation: popup-masuk 0.38s cubic-bezier(0.2, 0.9, 0.3, 1.15); }
+    .popup::backdrop { background: rgba(244, 238, 246, 0.78); animation: redup 0.38s ease; }
+    .popup.menutup { opacity: 0; transform: translateY(18px) scale(0.96); transition: opacity 0.22s ease, transform 0.22s ease; }
+
+    @keyframes popup-masuk { from { opacity: 0; transform: translateY(34px) scale(0.92); } }
+    @keyframes redup { from { opacity: 0; } }
+
+    .popup-atas {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      padding: var(--space-4) var(--space-3) var(--space-4) var(--space-5);
+      background: linear-gradient(120deg, var(--warna-1), var(--warna-2));
+    }
+
+    .popup-atas h2 { margin: 0; font-size: 1.3rem; }
+    .popup-atas p { margin: 0; font-size: 0.9rem; font-weight: 600; }
+
+    .tutup {
+      flex: none;
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--green);
+      font: inherit;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .popup-isi { flex: 1; min-height: 0; padding: var(--space-5); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; outline: none; }
+
+    .popup-arab {
+      margin: 0 0 var(--space-4);
+      padding: var(--space-4);
+      border: 2px solid var(--warna-1);
+      border-radius: 18px;
+      background: #fffdf8;
+      font-family: "Amiri", "Scheherazade New", "Noto Naskh Arabic", "Traditional Arabic", serif;
+      font-size: clamp(1.3rem, 4.6vw, 1.6rem);
+      line-height: 2.1;
+      text-align: right;
+    }
+
+    .popup-arab.ayat { font-family: "Uthmanic Hafs", "Amiri Quran", "Amiri", "Traditional Arabic", serif; text-align: center; }
+
+    .label-isi { margin: 0 0 var(--space-1); color: var(--accent); font-size: 0.85rem; font-weight: 700; }
+    .popup-sanad { color: var(--text-soft); font-size: 0.95rem; }
+    .popup-sanad strong { color: var(--green); }
+    .popup-catatan { padding: var(--space-3); border-radius: 14px; background: var(--honey-light); font-size: 0.9rem; }
+    .derajat { display: inline-block; margin: 0 0 var(--space-3); padding: 4px var(--space-3); border-radius: 999px; background: var(--sage-light); color: var(--green); font-size: 0.85rem; font-weight: 600; }
+    .asal { margin: 0; color: var(--text-soft); font-size: 0.8rem; }
+    .langkah-mudah { margin: 0 0 var(--space-4); padding-left: 1.3em; }
+    .langkah-mudah li { margin-bottom: var(--space-1); }
+    .target { padding: var(--space-3) var(--space-4); border-radius: 16px; background: linear-gradient(120deg, var(--warna-1), var(--warna-2)); }
+    .target strong { display: block; }
+    .popup-aksi { text-align: center; }
+
+    @media (max-width: 480px) { .popup-isi { padding: var(--space-4); } }
+
+    /* Kartu muncul pelan saat digulir (kelas .menunggu dipasang JavaScript) */
+    .muncul { transition: opacity 0.6s ease, transform 0.6s ease; }
+    .muncul.menunggu { opacity: 0; transform: translateY(26px); }
+
+    @media print {
+      .muncul.menunggu { opacity: 1; transform: none; }
+      .judul-info { margin: 3mm 0 2mm; }
+      .judul-info img { width: 9mm; height: 9mm; animation: none; }
+      .journal-page .judul-info:first-child { margin-top: 0; }
+      .card { padding: 2.5mm 3mm; margin-bottom: 2mm; }
+      .poin { grid-template-columns: 9mm 1fr; gap: 3mm; }
+      .nomor { width: 9mm; height: 9mm; font-size: 11pt; }
+      .poin h3 { margin-bottom: 0; font-size: 10pt; }
+      .poin p { margin-bottom: 0; font-size: 8.5pt; line-height: 1.35; }
+      .poin p.sumber { font-size: 7.5pt; }
+      .amalan { grid-template-columns: repeat(4, 1fr); gap: 2mm; }
+      .amalan button { display: block !important; min-height: 0; padding: 1.5mm; border-radius: 3mm; font-size: 8pt; }
+      .amalan li { break-inside: avoid; }
+      .popup { display: none !important; }
+      .amalan b { font-size: 13pt; }
+    }
+  </style>
+</head>
+<body data-aksen>
+  <nav class="nav-bar" aria-label="Navigasi utama">
+    <a class="nav-title" href="index.html">Jurnal Ramadhan</a>
+    <a href="menu.html">Menu</a>
+    <a href="profil.html">Profil</a>
+    <a href="tracker.html">Tracker</a>
+  </nav>
+
+  <main class="page">
+    <section class="journal-page">
+      <header class="page-header page-header-hias">
+        <div class="logo-bar">
+          <img src="assets/logo-fmdki.png" alt="Logo FMDKI">
+          <img src="assets/logo-karimah.png" alt="Logo KARIMAH">
+        </div>
+        <h1>Infografis Ramadhan</h1>
+        <p class="quote">Kenali keutamaannya, rasakan manisnya</p>
+      </header>
+
+      <div class="judul-info"><img src="assets/ikon-bulan.svg" alt=""><h2>Keutamaan Puasa</h2></div>
+
+      <article class="card card-green poin muncul"><span class="nomor">1</span><div>
+        <h3>Pahala berlipat</h3>
+        <p>Puasa itu untuk Allah, dan Allah sendiri yang membalasnya.</p>
+        <p class="sumber">Ringkasan hadits, HR Bukhari 1904</p>
+        <button class="buka-dalil" type="button" data-dalil="b1904">Baca hadits lengkap</button>
+      </div></article>
+      <article class="card card-gold poin muncul"><span class="nomor">2</span><div>
+        <h3>Sebagai tameng</h3>
+        <p>Puasa adalah perisai bagi orang yang menjalankannya.</p>
+        <p class="sumber">Ringkasan hadits, HR Bukhari 1904</p>
+        <button class="buka-dalil" type="button" data-dalil="b1904">Baca hadits lengkap</button>
+      </div></article>
+      <article class="card card-rose poin muncul"><span class="nomor">3</span><div>
+        <h3>Bau yang harum di sisi Allah</h3>
+        <p>Bau mulut orang yang berpuasa lebih harum di sisi Allah daripada minyak kesturi.</p>
+        <p class="sumber">Ringkasan hadits, HR Bukhari 1904</p>
+        <button class="buka-dalil" type="button" data-dalil="b1904">Baca hadits lengkap</button>
+      </div></article>
+      <article class="card card-lav poin muncul"><span class="nomor">4</span><div>
+        <h3>Pintu Ar Rayyan</h3>
+        <p>Di surga ada pintu khusus bernama Ar Rayyan untuk orang yang berpuasa.</p>
+        <p class="sumber">Ringkasan hadits, HR Bukhari 1896</p>
+        <button class="buka-dalil" type="button" data-dalil="b1896">Baca hadits lengkap</button>
+      </div></article>
+      <article class="card card-green poin muncul"><span class="nomor">5</span><div>
+        <h3>Dosa diampuni</h3>
+        <p>Siapa yang berpuasa Ramadhan karena iman dan mengharap pahala, dosanya yang telah lalu diampuni.</p>
+        <p class="sumber">Ringkasan hadits, HR Bukhari 38</p>
+        <button class="buka-dalil" type="button" data-dalil="b38">Baca hadits lengkap</button>
+      </div></article>
+    </section>
+
+    <section class="journal-page">
+      <div class="judul-info"><img src="assets/ikon-lampu.svg" alt=""><h2>Keutamaan Sahur</h2></div>
+
+      <article class="card card-gold poin muncul"><span class="nomor">1</span><div>
+        <h3>Ada berkah</h3>
+        <p>Rasulullah ﷺ menyuruh makan sahur karena di dalamnya ada berkah.</p>
+        <p class="sumber">Ringkasan hadits, HR Bukhari 1923</p>
+        <button class="buka-dalil" type="button" data-dalil="b1923">Baca hadits lengkap</button>
+      </div></article>
+      <article class="card card-rose poin muncul"><span class="nomor">2</span><div>
+        <h3>Pembeda puasa kita</h3>
+        <p>Makan sahur menjadi pembeda puasa kita dengan puasa Ahli Kitab.</p>
+        <p class="sumber">Ringkasan hadits, HR Muslim 1096</p>
+        <button class="buka-dalil" type="button" data-dalil="m1096">Baca hadits lengkap</button>
+      </div></article>
+      <article class="card card-lav poin muncul"><span class="nomor">3</span><div>
+        <h3>Waktu doa dikabulkan</h3>
+        <p>Pada sepertiga malam terakhir, Allah mengabulkan doa orang yang berdoa.</p>
+        <p class="sumber">Ringkasan hadits, HR Bukhari 1145</p>
+        <button class="buka-dalil" type="button" data-dalil="b1145">Baca hadits lengkap</button>
+      </div></article>
+      <article class="card card-green poin muncul"><span class="nomor">4</span><div>
+        <h3>Waktu memohon ampun</h3>
+        <p>dan pada akhir malam mereka memohon ampunan (kepada Allah).</p>
+        <p class="sumber">QS Adz Dzariyat: 18</p>
+        <button class="buka-dalil" type="button" data-dalil="q51">Baca ayat lengkap</button>
+      </div></article>
+      <article class="card card-gold poin muncul"><span class="nomor">5</span><div>
+        <h3>Sahur dengan kurma</h3>
+        <p>Sebaik-baik sahur orang beriman adalah kurma.</p>
+        <p class="sumber">Ringkasan hadits, HR Abu Daud 2345</p>
+        <button class="buka-dalil" type="button" data-dalil="a2345">Baca hadits lengkap</button>
+      </div></article>
+
+      <div class="judul-info"><img src="assets/ikon-ceklis.svg" alt=""><h2>Amalan Ibadah</h2></div>
+      <p class="text-soft no-print">Ketuk satu amalan untuk melihat dalil dan langkah mudahnya.</p>
+      <!-- Dibuat JavaScript dari AMALAN di infografis-data.js -->
+      <ul class="amalan" id="daftarAmalan"></ul>
+      <p class="aksi no-print" style="margin-top:24px;text-align:center"><a class="btn-primary" href="tracker.html">Catat amalanku</a></p>
+    </section>
+  </main>
+
+  <!-- Pop up: isinya dari infografis-data.js, jadi tidak perlu membuka situs lain -->
+  <dialog class="popup" id="popup" aria-labelledby="popupJudul">
+    <div class="popup-atas">
+      <div><h2 id="popupJudul"></h2><p id="popupSumber"></p></div>
+      <button class="tutup" type="button" id="popupTutup" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="popup-isi" id="popupIsi" tabindex="0"></div>
+  </dialog>
+
+  <script src="transisi.js"></script>
+  <script src="infografis-data.js"></script>
+  <script>
+    const popup = document.getElementById("popup");
+    const popupIsi = document.getElementById("popupIsi");
+    const tanpaGerak = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const WARNA = {
+      "card-green": ["#b7d3bc", "#e2efe2"], "card-gold": ["#efd3a0", "#fbeed6"],
+      "card-rose": ["#ecc2d0", "#f9e4eb"], "card-lav": ["#d3c7e6", "#ece6f4"]
+    };
+
+    function tambah(induk, tag, kelas, teks) {
+      const e = document.createElement(tag);
+      if (kelas) e.className = kelas;
+      if (teks) e.textContent = teks;
+      induk.appendChild(e);
+      return e;
+    }
+
+    /* Nama perawi di data ditandai [kurung siku]; di layar dibuat tebal */
+    function tulisSanad(induk, sanad) {
+      sanad.split(/\[([^\]]+)\]/).forEach(function (bagian, i) {
+        if (i % 2) tambah(induk, "strong", "", bagian);
+        else induk.append(bagian);
+      });
+    }
+
+    function tulisDalil(kunci) {
+      const d = DALIL[kunci], ayat = d.jenis === "ayat";
+      const arab = tambah(popupIsi, "p", "popup-arab" + (ayat ? " ayat" : ""), d.arab);
+      arab.lang = "ar";
+      arab.dir = "rtl";
+      if (d.sanad) {
+        tambah(popupIsi, "p", "label-isi", "Sanad");
+        tulisSanad(tambah(popupIsi, "p", "popup-sanad"), d.sanad);
+      }
+      tambah(popupIsi, "p", "label-isi", "Terjemahan");
+      tambah(popupIsi, "p", "", d.arti);
+      if (d.catatan) tambah(popupIsi, "p", "popup-catatan", "Catatan: " + d.catatan);
+      if (d.derajat) tambah(popupIsi, "p", "derajat", d.derajat);
+      return ayat ? "" : "Teks Arab, sanad, dan terjemahan diambil dari database hadits digital";
+    }
+
+    function bukaPopup(judul, sumber, warna, tulisIsi) {
+      popup.style.setProperty("--warna-1", warna[0]);
+      popup.style.setProperty("--warna-2", warna[1]);
+      document.getElementById("popupJudul").textContent = judul;
+      document.getElementById("popupSumber").textContent = sumber;
+      popupIsi.textContent = "";
+      tulisIsi();
+      popup.classList.remove("menutup");
+      popup.showModal();
+      popupIsi.scrollTop = 0;
+      popupIsi.focus({ preventScroll: true });
+      document.documentElement.style.overflow = "hidden"; // halaman di belakang tidak ikut bergulir
+      Suara.kertas();
+    }
+
+    function tutupPopup() {
+      if (!popup.open || popup.classList.contains("menutup")) return;
+      popup.classList.add("menutup");
+      setTimeout(function () { popup.close(); }, tanpaGerak ? 0 : 220);
+    }
+
+    document.getElementById("popupTutup").addEventListener("click", tutupPopup);
+    popup.addEventListener("click", function (e) { if (e.target === popup) tutupPopup(); });
+    popup.addEventListener("cancel", function (e) { e.preventDefault(); tutupPopup(); }); // tombol Esc
+    popup.addEventListener("close", function () {
+      popup.classList.remove("menutup");
+      document.documentElement.style.overflow = "";
+    });
+
+    /* Tombol "Baca hadits lengkap" */
+    document.querySelectorAll(".buka-dalil").forEach(function (tombol) {
+      tombol.addEventListener("click", function () {
+        const kartu = tombol.closest(".card");
+        const kelas = Object.keys(WARNA).find(function (k) { return kartu.classList.contains(k); });
+        const kunci = tombol.dataset.dalil;
+        bukaPopup(kartu.querySelector("h3").textContent, DALIL[kunci].sumber, WARNA[kelas], function () {
+          const asal = tulisDalil(kunci);
+          if (asal) tambah(popupIsi, "p", "asal", asal);
+        });
+      });
+    });
+
+    /* Kartu amalan ibadah */
+    const URUTAN_WARNA = ["card-lav", "card-gold", "card-rose", "card-green"];
+    AMALAN.forEach(function (a, i) {
+      const li = tambah(document.getElementById("daftarAmalan"), "li", "muncul");
+      const tombol = tambah(li, "button");
+      tombol.type = "button";
+      tambah(tombol, "b", "", a.ikon).setAttribute("aria-hidden", "true");
+      tombol.append(a.judul);
+      tombol.addEventListener("click", function () {
+        bukaPopup(a.ikon + " " + a.judul, DALIL[a.dalil].sumber, WARNA[URUTAN_WARNA[i % 4]], function () {
+          const asal = tulisDalil(a.dalil);
+          tambah(popupIsi, "p", "label-isi", "Cara mudah memulai");
+          const ol = tambah(popupIsi, "ol", "langkah-mudah");
+          a.langkah.forEach(function (l) { tambah(ol, "li", "", l); });
+          const target = tambah(popupIsi, "p", "target");
+          tambah(target, "strong", "", "Target kecil hari ini");
+          target.append(a.target);
+          const aksi = tambah(popupIsi, "p", "popup-aksi");
+          tambah(aksi, "a", "btn-primary", "Catat di tracker").href = "tracker.html";
+          if (asal) tambah(popupIsi, "p", "asal", asal);
+        });
+      });
+    });
+
+    /* Kartu muncul satu per satu saat masuk layar */
+    if ("IntersectionObserver" in window && !tanpaGerak) {
+      const pengamat = new IntersectionObserver(function (daftar) {
+        daftar.forEach(function (d) {
+          if (!d.isIntersecting) return;
+          d.target.classList.remove("menunggu");
+          pengamat.unobserve(d.target);
+        });
+      }, { rootMargin: "0px 0px -6% 0px" });
+      document.querySelectorAll(".muncul").forEach(function (k) {
+        k.classList.add("menunggu");
+        pengamat.observe(k);
+      });
+    }
+  </script>
+</body>
+</html>

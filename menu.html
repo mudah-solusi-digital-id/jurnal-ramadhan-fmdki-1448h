@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Daftar Isi | Jurnal Ramadhan 1448 H</title>
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="print.css">
+  <style>
+    /* Gaya khusus daftar isi */
+    .teks-tracker { margin: var(--space-3) 0 0; font-size: 0.9rem; }
+    .bagian { margin-top: var(--space-6); }
+
+    /* Tiga kartu sejajar di laptop */
+    .grid-awal { grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
+
+    .level-judul {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+
+    .level-judul img { flex: none; width: 56px; height: 56px; }
+    .level-judul h3 { margin: 0; font-size: 1.25rem; }
+    .level-judul p { margin: 0; font-size: 0.9rem; }
+
+    .hari-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+      gap: var(--space-2);
+      margin: var(--space-4) 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .hari {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      border: 1.5px solid rgba(36, 69, 58, 0.22);
+      border-radius: 14px;
+      background: #ffffff;
+      color: var(--green);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .hari:hover { border-color: var(--green-mid); }
+
+    /* Sudah diisi: hijau dan bertanda centang, jadi tidak hanya beda warna */
+    .hari.terisi {
+      border-color: var(--green-mid);
+      background: var(--green-mid);
+      color: #ffffff;
+    }
+
+    .hari.terisi::after {
+      content: "\2713";
+      margin-left: 3px;
+      font-size: 0.8em;
+    }
+
+    .aksi { margin-top: var(--space-6); text-align: center; }
+
+    @media print {
+      .bagian { margin-top: 4mm; }
+      .card { padding: 3mm 4mm; }
+      .level-judul { margin-bottom: 1mm; }
+      .level-judul img { width: 9mm; height: 9mm; }
+      .level-judul h3 { font-size: 12pt; }
+      .hari-grid { grid-template-columns: repeat(10, 1fr); gap: 1.5mm; margin-top: 2mm; }
+      .hari { min-height: 7mm; border-radius: 2mm; font-size: 8pt; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-bar" aria-label="Navigasi utama">
+    <a class="nav-title" href="index.html">Jurnal Ramadhan</a>
+    <a href="menu.html" aria-current="page">Menu</a>
+    <a href="profil.html">Profil</a>
+    <a href="tracker.html">Tracker</a>
+  </nav>
+
+  <main class="page">
+    <header class="page-header page-header-hias">
+      <div class="logo-bar">
+        <img src="assets/logo-fmdki.png" alt="Logo FMDKI">
+        <img src="assets/logo-karimah.png" alt="Logo KARIMAH">
+      </div>
+      <h1>Jurnal Ramadhan 1448 H</h1>
+      <p class="quote">Space to Breathe, Menata Ruang Diri, Berdampak bagi Negeri</p>
+    </header>
+
+    <section class="card" aria-labelledby="judulProgres">
+      <h2 id="judulProgres">Perjalananku</h2>
+      <p id="teksProgres">Kamu sudah mengisi 0 dari 30 hari jurnal 🌙</p>
+      <progress class="progress" id="batangProgres" value="0" max="30" aria-labelledby="teksProgres"></progress>
+      <p class="teks-tracker text-soft" id="teksTracker"></p>
+    </section>
+
+    <nav class="grid grid-awal no-print" aria-label="Halaman awal">
+      <a class="card link-card" href="profil.html">
+        <img src="assets/ikon-jurnal.svg" alt="">
+        <span><strong>Profil Muslimah</strong><small>Kenalan dulu, yuk</small></span>
+      </a>
+      <a class="card link-card" href="tracker.html">
+        <img src="assets/ikon-ceklis.svg" alt="">
+        <span><strong>Amalan Tracker</strong><small>Shalat, tilawah, sedekah</small></span>
+      </a>
+      <a class="card link-card" href="infografis.html">
+        <img src="assets/ikon-laptop.svg" alt="">
+        <span><strong>Infografis</strong><small>Keutamaan Ramadhan</small></span>
+      </a>
+    </nav>
+
+    <section class="bagian" aria-labelledby="judulLevel">
+      <h2 id="judulLevel">Jurnal 30 Hari</h2>
+      <p class="no-print"><a href="jurnal/index.html">Lihat daftar lengkap dengan judul tiap hari</a></p>
+
+      <!-- Tombol hari dibuat JavaScript di dalam <ol data-dari data-sampai> -->
+      <article class="card card-green">
+        <div class="level-judul">
+          <img src="assets/ikon-quran.svg" alt="">
+          <div><h3>Level 1: Reset Diri &amp; Niat</h3><p>Hari 1 sampai 10</p></div>
+        </div>
+        <a class="btn-primary" href="bab1-visual.html">Buka Level 1</a>
+        <ol class="hari-grid" data-dari="1" data-sampai="10"></ol>
+      </article>
+
+      <article class="card card-gold">
+        <div class="level-judul">
+          <img src="assets/ikon-lampu.svg" alt="">
+          <div><h3>Level 2: Berdiri Dalam</h3><p>Hari 11 sampai 20</p></div>
+        </div>
+        <a class="btn-gold" href="bab2-visual.html">Buka Level 2</a>
+        <ol class="hari-grid" data-dari="11" data-sampai="20"></ol>
+      </article>
+
+      <article class="card card-sage">
+        <div class="level-judul">
+          <img src="assets/ikon-bulan.svg" alt="">
+          <div><h3>Level 3: Totalitas</h3><p>Hari 21 sampai 30</p></div>
+        </div>
+        <a class="btn-gold" href="bab3-visual.html">Buka Level 3</a>
+        <ol class="hari-grid" data-dari="21" data-sampai="30"></ol>
+      </article>
+    </section>
+
+    <nav class="grid bagian no-print" aria-label="Halaman akhir">
+      <a class="card card-rose link-card" href="proyek-kebaikan.html">
+        <img src="assets/ikon-hati.svg" alt="">
+        <span><strong>Proyek Kebaikan</strong><small>Satu langkah kecil untuk negeri</small></span>
+      </a>
+      <a class="card card-lav link-card" href="penutup.html">
+        <img src="assets/ikon-bulan.svg" alt="">
+        <span><strong>Penutup</strong><small>Sampai jumpa tahun depan</small></span>
+      </a>
+    </nav>
+
+    <p class="aksi"><button class="btn-primary" type="button" id="tombolCetak">Cetak Semua</button></p>
+  </main>
+
+  <!-- Diisi JavaScript saat tombol Cetak Semua diklik -->
+  <div class="print-only" id="cetakan"></div>
+
+  <script src="transisi.js"></script>
+  <script src="jurnal/data.js"></script>
+  <script src="storage.js"></script>
+  <script src="lembar.js"></script>
+  <script>
+    /* 1. Membuat tombol hari di setiap level */
+    document.querySelectorAll(".hari-grid").forEach(function (daftar) {
+      const dari = Number(daftar.dataset.dari);
+      const sampai = Number(daftar.dataset.sampai);
+      for (let hari = dari; hari <= sampai; hari++) {
+        const item = document.createElement("li");
+        const link = document.createElement("a");
+        link.className = "hari";
+        link.href = "jurnal/template.html?hari=" + hari;
+        link.textContent = hari;
+        link.dataset.hari = hari;
+        item.appendChild(link);
+        daftar.appendChild(item);
+      }
+    });
+
+    /* 2. Menampilkan kemajuan dari localStorage */
+    function tampilkanProgres() {
+      document.querySelectorAll(".hari").forEach(function (link) {
+        const hari = link.dataset.hari;
+        const terisi = jurnalTerisi(hari);
+        link.classList.toggle("terisi", terisi);
+        link.setAttribute("aria-label", "Hari " + hari + (terisi ? ", sudah diisi" : ", belum diisi"));
+      });
+
+      const jumlah = jumlahHariTerisi();
+      document.getElementById("teksProgres").textContent =
+        "Kamu sudah mengisi " + jumlah + " dari " + JUMLAH_HARI + " hari jurnal 🌙";
+      document.getElementById("teksTracker").textContent =
+        ringkasTracker().amalan + " amalan sudah tercentang di tracker";
+      document.getElementById("batangProgres").value = jumlah;
+    }
+
+    // pageshow jalan saat halaman dibuka DAN saat kembali lewat tombol "back"
+    window.addEventListener("pageshow", tampilkanProgres);
+    // storage jalan saat jurnal diisi di tab lain
+    window.addEventListener("storage", tampilkanProgres);
+
+    /* 3. Cetak Semua: daftar isi + 30 lembar jurnal beserta jawabannya */
+    const cetakan = document.getElementById("cetakan");
+
+    document.getElementById("tombolCetak").addEventListener("click", function () {
+      cetakan.textContent = "";
+      for (let hari = 1; hari <= JUMLAH_HARI; hari++) buatLembarJurnal(hari, cetakan);
+      window.print();
+    });
+
+    // Jadi Ctrl+P biasa hanya mencetak daftar isi
+    kosongkanSetelahCetak(function () { cetakan.textContent = ""; });
+  </script>
+</body>
+</html>

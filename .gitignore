@@ -1,0 +1,11 @@
+# Hanya untuk uji di HP lewat WiFi, tidak perlu di situs
+jalankan-di-hp.bat
+
+# Foto Madinah dan Makkah lama: tidak dipakai lagi (TV memutar video 3D)
+# dan memperlihatkan wajah orang lain. Tetap ada di laptop dan cadangan zip.
+assets/layar/
+
+# File sistem
+Thumbs.db
+desktop.ini
+.DS_Store

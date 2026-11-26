@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Penutup | Jurnal Ramadhan 1448 H</title>
+  <meta name="theme-color" content="#e2efe2">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="print.css">
+  <style>
+    /* Gaya khusus penutup */
+    body { min-height: 100vh; background: linear-gradient(170deg, var(--sage-light), #ffffff 45%, var(--rose-light)); }
+
+    #bintang {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .akhir { text-align: center; }
+    .akhir .logo-bar { margin: var(--space-4) 0 var(--space-6); }
+    .akhir .logo-bar img { height: clamp(44px, 12vw, 68px); }
+    .akhir h1 { font-size: clamp(2rem, 8vw, 3.4rem); }
+
+    .pil {
+      display: inline-block;
+      margin: var(--space-3) 0 var(--space-5);
+      padding: var(--space-3) var(--space-5);
+      border-radius: 999px;
+      background: linear-gradient(120deg, var(--honey), #f4e2b8);
+      color: var(--green-deep);
+      font-weight: 700;
+      animation: napas 3.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes napas { to { transform: scale(1.04); } }
+
+    .jumpa { font-size: 1.15rem; }
+    .insya { margin-bottom: var(--space-6); font-size: 1.8rem; }
+
+    .tombol { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); }
+
+    .rekap { margin-top: var(--space-6); text-align: left; }
+
+    .angka {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: var(--space-2);
+      margin: 0 0 var(--space-4);
+      padding: 0;
+      list-style: none;
+    }
+
+    .angka li { padding: var(--space-3); border-radius: 16px; background: var(--sage-light); text-align: center; font-size: 0.9rem; }
+    .angka li:nth-child(2n) { background: var(--honey-light); }
+    .angka li:nth-child(3n) { background: var(--rose-light); }
+    .angka strong { display: block; color: var(--green); font-family: var(--font-display); font-size: 1.8rem; }
+
+    .simpan-rekap { padding-top: var(--space-4); border-top: 1px solid var(--border); }
+    .simpan-rekap label { display: flex; align-items: center; gap: var(--space-2); min-height: 44px; cursor: pointer; }
+    .simpan-rekap input { width: 22px; height: 22px; accent-color: #3a6b58; }
+    .simpan-rekap p { margin: var(--space-3) 0 0; font-size: 0.9rem; }
+
+    @media print {
+      #bintang { display: none; }
+      body { min-height: 0; background: #ffffff; }
+      .akhir h1 { font-size: 20pt; }
+      .pil { margin: 1mm 0 3mm; padding: 2mm 5mm; }
+      .jumpa { margin-bottom: 1mm; font-size: 11pt; }
+      .rekap { margin-top: 2mm; }
+      .angka li { padding: 2mm; }
+      .angka strong { font-size: 14pt; }
+      .akhir .logo-bar { margin: 2mm 0 4mm; }
+      .akhir .logo-bar img { height: 14mm; }
+      .pil { animation: none; }
+      .insya { margin-bottom: 2mm; font-size: 14pt; }
+      .angka { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bintang" aria-hidden="true"></canvas>
+
+  <nav class="nav-bar" aria-label="Navigasi utama">
+    <a class="nav-title" href="index.html">Jurnal Ramadhan</a>
+    <a href="menu.html">Menu</a>
+    <a href="profil.html">Profil</a>
+    <a href="tracker.html">Tracker</a>
+  </nav>
+
+  <main class="page akhir">
+    <div class="logo-bar">
+      <img src="assets/logo-fmdki.png" alt="Logo FMDKI Indonesia">
+      <img src="assets/logo-karimah.png" alt="Logo KARIMAH">
+    </div>
+    <h1>Jazakumullah Khairan Katsiran</h1>
+    <p class="pil">Semoga Ibadah Kalian Lancar, Semangat!!!</p>
+    <p class="jumpa">Sampai Jumpa di Ramadhan Tahun Depan</p>
+    <p class="quote insya">Insyaa Allah</p>
+
+    <div class="tombol no-print">
+      <button class="btn-primary" type="button" id="tombolRekap" aria-expanded="false" aria-controls="rekap">Lihat Rekap Jurnalku</button>
+      <a class="btn-gold" href="index.html">Kembali ke Awal</a>
+    </div>
+
+    <section class="card rekap" id="rekap" aria-labelledby="judulRekap" hidden>
+      <h2 id="judulRekap">Rekap Jurnalku</h2>
+      <ul class="angka" id="angka"></ul>
+      <p id="teksMood"></p>
+      <p id="teksProyek"></p>
+      <div class="simpan-rekap no-print">
+        <button class="btn-gold" type="button" id="tombolUnduh">Simpan rekap lengkap (PDF)</button>
+        <p class="text-soft" id="isiPdf"></p>
+        <p class="text-soft"><strong>Di HP:</strong> pilih Simpan sebagai PDF di bagian atas, lalu tekan tombol PDF.<br><strong>Di laptop:</strong> pada Destination pilih Save as PDF, lalu Save.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Disusun rekap.js, hanya muncul saat dicetak -->
+  <div class="print-only" id="rekapLengkap"></div>
+
+  <script src="transisi.js"></script>
+  <script src="storage.js"></script>
+  <script src="jurnal/data.js"></script>
+  <script src="tracker-data.js"></script>
+  <script src="lembar.js"></script>
+  <script src="rekap.js"></script>
+  <script>
+    const el = function (id) { return document.getElementById(id); };
+
+    /* ============ 1. REKAP dari localStorage ============ */
+    const rekapLengkap = el("rekapLengkap");
+    const judulHalaman = document.title;
+
+    function isiRekap() {
+      const panggilan = hanyaTulisan(loadProfil().panggilan);
+      el("judulRekap").textContent = panggilan ? "Rekap Jurnal " + panggilan : "Rekap Jurnalku";
+      el("angka").textContent = "";
+      tulisAngka(el("angka"));
+
+      const mood = hitungMood();
+      el("teksMood").textContent = "Mood: 😊 " + mood.senang + " hari, 😐 " + mood.biasa + " hari, 😔 " + mood.sedih + " hari";
+      el("teksProyek").textContent = "Proyek kebaikan: " + (namaProyekPilihan(loadProyek()) || "belum dipilih");
+
+      // Disusun sekarang supaya foto dan logo sudah siap saat dicetak
+      buatRekapLengkap(rekapLengkap);
+      el("isiPdf").textContent = "Berisi semua isi jurnalmu, sekitar " + rekapLengkap.children.length +
+        " lembar A5: profil, tentang aku, ringkasan dan mood, tracker amalan, tilawah dan sedekah, " +
+        "30 hari jurnal (" + jumlahHariTerisi() + " sudah diisi), proyek kebaikan, dan catatan bebas di kamar. " +
+        "Data pribadi seperti tanggal lahir dan medsos ikut masuk, jadi hati hati saat membagikan PDF ini.";
+    }
+
+    function tutupModeRekap() {
+      document.body.classList.remove("cetak-rekap");
+      document.title = judulHalaman;
+    }
+
+    el("tombolRekap").addEventListener("click", function () {
+      const buka = el("rekap").hidden;
+      if (buka) { isiRekap(); Suara.lonceng(); }
+      el("rekap").hidden = !buka;
+      this.setAttribute("aria-expanded", buka);
+      this.textContent = buka ? "Tutup Rekap" : "Lihat Rekap Jurnalku";
+      if (buka) el("rekap").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    el("tombolUnduh").addEventListener("click", function () {
+      const nama = hanyaTulisan(loadProfil().panggilan) || hanyaTulisan(loadProfil().nama);
+      document.body.classList.add("cetak-rekap");
+      document.title = ("Rekap Jurnal Ramadhan 1448 H " + nama).trim(); // menjadi nama file PDF
+      window.print();
+    });
+    kosongkanSetelahCetak(tutupModeRekap);
+    window.addEventListener("pageshow", function () { if (!el("rekap").hidden) isiRekap(); });
+
+    /* ============ 2. BINTANG EMAS JATUH (canvas 2D) ============ */
+    (function () {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const kanvas = el("bintang"), ctx = kanvas.getContext("2d");
+      if (!ctx) return;
+      const WARNA = ["#e3bd80", "#efd3a0", "#d4a45c", "#ecc2d0", "#b7d3bc"];
+      let lebar = 0, tinggi = 0, bintang = [];
+
+      function ukur() {
+        const skala = Math.min(window.devicePixelRatio || 1, 2);
+        lebar = window.innerWidth;
+        tinggi = window.innerHeight;
+        kanvas.width = lebar * skala;
+        kanvas.height = tinggi * skala;
+        ctx.setTransform(skala, 0, 0, skala, 0, 0);
+        const jumlah = Math.round(Math.min(70, 24 + lebar / 24));
+        bintang = Array.from({ length: jumlah }, function () { return baru(true); });
+      }
+
+      function baru(acakTinggi) {
+        return {
+          x: Math.random() * lebar,
+          y: acakTinggi ? Math.random() * tinggi - tinggi : -20,
+          besar: 4 + Math.random() * 7,
+          laju: 28 + Math.random() * 44,
+          goyang: Math.random() * 6,
+          putar: Math.random() * 6,
+          warna: WARNA[Math.floor(Math.random() * WARNA.length)]
+        };
+      }
+
+      function gambarBintang(b) {
+        ctx.save();
+        ctx.translate(b.x + Math.sin(b.goyang) * 14, b.y);
+        ctx.rotate(b.putar);
+        ctx.fillStyle = b.warna;
+        ctx.globalAlpha = 0.85;
+        ctx.beginPath();
+        for (let i = 0; i < 10; i++) {
+          const j = i % 2 ? b.besar * 0.45 : b.besar, a = i * Math.PI / 5;
+          ctx.lineTo(Math.cos(a) * j, Math.sin(a) * j);
+        }
+        ctx.fill();
+        ctx.restore();
+      }
+
+      let terakhir = 0;
+      function loop(waktu) {
+        const detik = Math.min((waktu - terakhir) / 1000, 0.05);
+        terakhir = waktu;
+        ctx.clearRect(0, 0, lebar, tinggi);
+        bintang.forEach(function (b, i) {
+          b.y += b.laju * detik;
+          b.goyang += detik * 1.2;
+          b.putar += detik * 0.8;
+          if (b.y > tinggi + 20) bintang[i] = baru(false);
+          gambarBintang(b);
+        });
+        requestAnimationFrame(loop);
+      }
+
+      ukur();
+      window.addEventListener("resize", ukur);
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

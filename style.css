@@ -1,0 +1,562 @@
+/* ==========================================================================
+   style.css — Gaya global Jurnal Ramadhan 1448 H (FMDKI x KARIMAH 2027)
+
+   Daftar isi:
+     1. Font
+     2. Variabel (warna merek, warna peran, font, jarak)
+     3. Dasar (reset, body, tipografi)
+     4. Layout (.page, .grid)
+     5. Komponen (.nav-bar, .logo-bar, .page-header, .card, tombol)
+     6. Form jurnal (.field)
+     7. Aksesibilitas dan layar kecil
+     8. Transisi halaman dan tombol suara
+     9. Halaman Level 3D
+   ========================================================================== */
+
+/* 1. FONT ------------------------------------------------------------------
+   @import wajib berada paling atas. Saat offline, browser memakai font
+   cadangan yang ditulis di variabel --font-* di bawah. */
+@import url("https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+
+/* 2. VARIABEL -------------------------------------------------------------- */
+:root {
+  color-scheme: light; /* selalu putih, walaupun perangkat dark mode */
+
+  /* Warna merek FMDKI */
+  --green: #24453a;
+  --green-mid: #3a6b58;
+  --green-deep: #0d1f18;
+  --gold: #c9a84c;
+  --cream: #fdfaf3;
+  --gold-light: #f5e9c8;
+  --green-light: #e8f0ec;
+
+  /* Warna pastel, senada dengan "Jurnal Mentee Pastel" */
+  --sage: #b7d3bc;
+  --sage-light: #e2efe2;
+  --rose: #ecc2d0;
+  --rose-light: #f9e4eb;
+  --lav: #d3c7e6;
+  --lav-light: #ece6f4;
+  --honey: #efd3a0;
+  --honey-light: #fbeed6;
+
+  /* Warna peran: halaman baru cukup memakai variabel ini */
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --text: #2f3a35;
+  --text-soft: #5c6762;
+  --heading: var(--green);
+  --accent: #8a6430;          /* cokelat emas: terbaca di atas putih */
+  --border: #e9e4dc;
+  --field-line: #8f9c93;
+  --focus: var(--green-mid);
+  --shadow: 0 6px 24px rgba(63, 102, 80, 0.08);
+
+  /* Font */
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-body: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --font-arab: "Amiri", "Traditional Arabic", "Noto Naskh Arabic", serif;
+
+  /* Skala jarak: kelipatan 4px */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --radius: 20px;
+  --radius-sm: 10px;
+  --page-width: 720px;
+}
+
+/* 3. DASAR ----------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 var(--space-3);
+  color: var(--heading);
+  font-family: var(--font-display);
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); }
+h2 { font-size: clamp(1.35rem, 3.5vw, 1.75rem); }
+h3 { font-size: 1.125rem; }
+
+p { margin: 0 0 var(--space-4); }
+
+a {
+  color: var(--heading);
+  text-underline-offset: 3px;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Pakai bersama atribut HTML: <p class="arab" lang="ar" dir="rtl"> */
+.arab {
+  font-family: var(--font-arab);
+  font-size: 1.75rem;
+  line-height: 2.1;
+  text-align: right;
+}
+
+.quote {
+  color: var(--accent);
+  font-family: var(--font-arab);
+  font-size: 1.2rem;
+  font-style: italic;
+}
+
+.text-soft { color: var(--text-soft); }
+
+/* Menang atas komponen yang punya display sendiri */
+[hidden] { display: none !important; }
+
+/* 4. LAYOUT ---------------------------------------------------------------- */
+.page {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) var(--space-7);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: var(--space-4);
+}
+
+/* 5. KOMPONEN -------------------------------------------------------------- */
+
+/* Navigasi atas yang menempel saat digulir */
+.nav-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-4);
+  padding: calc(var(--space-2) + env(safe-area-inset-top, 0px)) var(--space-4) var(--space-2);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--green);
+}
+
+.nav-bar a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--green);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.nav-bar a:hover,
+.nav-bar a[aria-current="page"] {
+  color: var(--accent);
+}
+
+.nav-bar a[aria-current="page"] { font-weight: 700; }
+
+.nav-bar .nav-title {
+  margin-right: auto;
+  color: var(--green);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+/* Deretan logo FMDKI dan KARIMAH */
+.logo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.logo-bar img {
+  width: auto;
+  height: 48px;
+  object-fit: contain;
+}
+
+/* Kepala halaman */
+.page-header {
+  margin-bottom: var(--space-5);
+  padding: var(--space-6) var(--space-5);
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--sage-light), var(--honey-light) 55%, var(--rose-light));
+  color: var(--green);
+  text-align: center;
+}
+
+.page-header > :last-child { margin-bottom: 0; }
+
+.page-header .logo-bar { margin-bottom: var(--space-4); }
+.page-header .logo-bar img { height: 40px; }
+
+/* Bulan, bintang, dan lentera yang berayun di sudut kanan atas */
+.page-header-hias {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--sage-light), var(--honey-light) 55%, var(--rose-light));
+}
+
+.page-header-hias::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 12px;
+  width: 120px;
+  height: 88px;
+  background: url("assets/hiasan-gantung.svg") top right / contain no-repeat;
+  transform-origin: 50% 0;
+  animation: berayun 5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes berayun {
+  from { transform: rotate(-3.5deg); }
+  to { transform: rotate(3.5deg); }
+}
+
+/* Kartu */
+.card {
+  margin-bottom: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.card > :last-child { margin-bottom: 0; }
+.grid > .card { margin-bottom: 0; }
+
+.card-green { border-color: var(--sage); background: var(--sage-light); }
+.card-gold { border-color: var(--honey); background: var(--honey-light); }
+.card-rose { border-color: var(--rose); background: var(--rose-light); }
+.card-lav { border-color: var(--lav); background: var(--lav-light); }
+.card-sage { border-color: #9dc2a6; background: var(--sage); }
+
+/* Kartu yang seluruhnya bisa diklik: ikon di kiri, tulisan di kanan */
+.link-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text);
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.link-card:hover { transform: translateY(-2px); }
+.link-card img { flex: none; width: 48px; height: 48px; }
+.link-card strong { display: block; color: var(--heading); }
+.link-card small { color: var(--text-soft); }
+
+/* Batang kemajuan: <progress class="progress" value="3" max="30"> */
+.progress {
+  display: block;
+  width: 100%;
+  height: 14px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: var(--green-light);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.progress::-webkit-progress-bar { background: var(--green-light); }
+.progress::-webkit-progress-value { border-radius: 999px; background: #86ae92; }
+.progress::-moz-progress-bar { border-radius: 999px; background: #86ae92; }
+
+/* Tombol: berlaku untuk <button> maupun <a> */
+.btn-primary,
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-5);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--sage);
+  color: var(--green-deep);
+}
+
+.btn-primary:hover { background: #a3c5ab; }
+
+.btn-gold {
+  background: var(--honey);
+  color: var(--green-deep);
+}
+
+.btn-gold:hover { background: #e6c486; }
+
+.btn-primary:disabled,
+.btn-gold:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* 6. FORM JURNAL -----------------------------------------------------------
+   Contoh:
+     <div class="field">
+       <label for="nama">Nama lengkap</label>
+       <input id="nama" name="nama">
+     </div> */
+.field { margin-bottom: var(--space-4); }
+
+.field label {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.field input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.field select,
+.field textarea {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-1);
+  border: 0;
+  border-bottom: 2px solid var(--field-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+}
+
+.field textarea {
+  min-height: 140px;
+  padding: var(--space-3);
+  border: 1.5px solid var(--field-line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  resize: vertical;
+}
+
+/* 7. AKSESIBILITAS DAN LAYAR KECIL ----------------------------------------- */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .page-header { padding: var(--space-5) var(--space-4); }
+  .card { padding: var(--space-4); }
+  .page-header .logo-bar { justify-content: flex-start; }
+  .page-header .logo-bar img { height: 30px; }
+  .page-header-hias::after { right: 4px; width: 84px; height: 62px; }
+}
+
+/* 8. TRANSISI HALAMAN DAN TOMBOL SUARA (lihat transisi.js) ----------------- */
+@media screen {
+  .page { animation: masuk-halus 0.55s ease backwards; }
+}
+
+@keyframes masuk-halus {
+  from { opacity: 0; transform: translateY(14px); }
+}
+
+/* Aksen pastel yang melayang pelan. Aktif di <body data-aksen> (lihat transisi.js) */
+.aksen-melayang {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aksen-melayang img {
+  position: absolute;
+  opacity: 0.6;
+  animation: melayang 7s ease-in-out infinite alternate;
+}
+
+.aksen-melayang i {
+  position: absolute;
+  top: -24px;
+  width: 12px;
+  height: 12px;
+  border-radius: 80% 0 80% 0;
+  opacity: 0.75;
+  animation: kelopak 16s linear infinite;
+}
+
+@keyframes melayang {
+  from { transform: translate(0, 0) rotate(-8deg); }
+  to { transform: translate(14px, -30px) rotate(9deg); }
+}
+
+@keyframes kelopak {
+  from { transform: translate(0, 0) rotate(0); }
+  50% { transform: translate(46px, 55vh) rotate(200deg); }
+  to { transform: translate(-10px, 112vh) rotate(420deg); }
+}
+
+[data-aksen] > main { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .aksen-melayang i { display: none; }
+}
+
+body { transition: opacity 0.42s ease; }
+body.pindah { opacity: 0; }
+
+.tombol-suara {
+  position: fixed;
+  z-index: 60;
+  left: calc(10px + env(safe-area-inset-left, 0px));
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1.5px solid var(--sage);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--green-mid);
+  cursor: pointer;
+}
+
+.page > .tombol-suara,
+.bab-teks > .tombol-suara { position: static; margin: var(--space-5) auto 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 9. HALAMAN LEVEL 3D (bab1, bab2, bab3; lihat bab3d.js) -------------------- */
+.bab {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: var(--space-5);
+  min-height: calc(100vh - 61px);
+  min-height: calc(100svh - 61px);
+  overflow: hidden;
+  padding: var(--space-5) clamp(16px, 5vw, 72px);
+}
+
+.bab #kanvas {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.bab #kanvas.siap { opacity: 1; }
+
+/* Kotak kosong tempat objek 3D; ukurannya dibaca bab3d.js */
+.bab-ruang { align-self: stretch; order: 2; pointer-events: none; }
+
+.bab-teks {
+  position: relative;
+  z-index: 10;
+  order: 1;
+  max-width: 560px;
+  padding: var(--space-5);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 12px 40px rgba(63, 102, 80, 0.1);
+  animation: masuk-halus 0.8s ease backwards;
+}
+
+.bab-teks .logo-bar { justify-content: flex-start; margin-bottom: var(--space-4); }
+.bab-teks .logo-bar img { height: 40px; }
+.bab-hari { display: inline-block; margin: 0 0 var(--space-2); padding: 2px var(--space-3); border-radius: 999px; background: var(--honey-light); color: var(--green); font-size: 0.9rem; font-weight: 600; }
+.bab-teks h1 { margin-bottom: var(--space-2); }
+
+.bab-ayat { margin-bottom: var(--space-5); padding: var(--space-4); border-left: 4px solid var(--honey); border-radius: 14px; background: rgba(255, 255, 255, 0.75); font-size: 0.95rem; }
+.bab-ayat p { margin: 0; }
+.bab-ayat #sumber { margin-top: var(--space-2); color: var(--accent); font-size: 0.85rem; font-weight: 600; }
+
+.bab-tombol { min-height: 56px; padding-inline: var(--space-7); font-size: 1.1rem; }
+.bab-balik { margin: var(--space-3) 0 0; font-size: 0.9rem; }
+
+@media (max-width: 767px) {
+  .bab { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0 var(--space-4) var(--space-7); }
+  .bab #kanvas {
+    inset: 0 0 auto 0;
+    height: 60vh;
+    height: 60svh;
+    -webkit-mask-image: linear-gradient(#000 88%, transparent);
+    mask-image: linear-gradient(#000 88%, transparent);
+  }
+  .bab-ruang { order: 1; flex: none; height: 40vh; height: 40svh; min-height: 220px; }
+  .bab-teks { order: 2; max-width: none; text-align: center; }
+  .bab-teks .logo-bar { justify-content: center; }
+  .bab-teks .logo-bar img { height: 32px; }
+  .bab-ayat { text-align: left; }
+  .bab-tombol { width: 100%; }
+}
+
+/* HP miring: tetap dua kolom, teks bisa digulir */
+@media (max-height: 520px) and (orientation: landscape) {
+  .bab { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); padding: var(--space-3) var(--space-4); }
+  .bab #kanvas { inset: 0; height: 100%; -webkit-mask-image: none; mask-image: none; }
+  .bab-ruang { order: 2; height: auto; min-height: 0; }
+  .bab-teks { order: 1; padding: var(--space-4); }
+}
+
+@media print {
+  .bab #kanvas, .bab-ruang { display: none; }
+  .bab { display: block; min-height: 0; }
+}

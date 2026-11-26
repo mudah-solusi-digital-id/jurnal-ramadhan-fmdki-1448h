@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Jurnal Harian | Jurnal Ramadhan 1448 H</title>
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../print.css">
+  <style>
+    /* Gaya khusus jurnal harian */
+    .pil-baris {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+    }
+
+    .pil {
+      padding: 2px var(--space-3);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.75);
+      color: var(--green);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .tanggal { margin: 0; font-size: 0.9rem; }
+
+    .kartu-judul {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+
+    .kartu-judul img { flex: none; width: 40px; height: 40px; }
+    .kartu-judul h2 { margin: 0; font-size: 1.2rem; }
+
+    .ayat-teks {
+      margin-bottom: var(--space-2);
+      font-family: var(--font-arab);
+      font-size: 1.3rem;
+      line-height: 1.6;
+    }
+
+    .ayat-sumber { color: var(--accent); font-size: 0.9rem; font-weight: 600; }
+
+    .pertanyaan {
+      color: var(--heading);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .field { margin-bottom: 0; }
+    #refleksi { min-height: 180px; }
+
+    .mood {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-3);
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .mood-judul { margin-bottom: var(--space-3); padding: 0; }
+    .mood label { position: relative; cursor: pointer; }
+
+    /* Radio tidak terlihat, tetapi tetap bisa dipilih dengan keyboard */
+    .mood input {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+    }
+
+    .mood span {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--space-3) var(--space-2);
+      border: 2px solid transparent;
+      border-radius: var(--radius);
+      background: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .mood b { font-size: 2.2rem; font-weight: 400; line-height: 1.3; }
+
+    .mood input:checked + span {
+      border-color: var(--green-mid);
+      background: var(--sage-light);
+    }
+
+    .mood input:focus-visible + span {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .status {
+      min-height: 1.7em;
+      margin: 0;
+      color: var(--green-mid);
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .status.gagal { color: #a03a52; }
+
+    .navigasi {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+      margin-top: var(--space-4);
+    }
+
+    .navigasi a { padding-inline: var(--space-2); }
+
+    .aksi { margin-top: var(--space-4); text-align: center; }
+
+    .tautan-cetak {
+      min-height: 44px;
+      border: 0;
+      background: none;
+      color: var(--heading);
+      font: inherit;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    @media print {
+      .page-header { padding: 2.5mm; margin-bottom: 3mm; }
+      .page-header .logo-bar { margin-bottom: 1mm; }
+      .page-header .logo-bar img { height: 7mm; }
+      .page-header h1 { font-size: 14pt; }
+      .pil-baris { margin-bottom: 1mm; }
+      .pil { font-size: 7.5pt; }
+      .page-header .quote { margin-bottom: 0; }
+      .tanggal { font-size: 8pt; }
+      .card { margin-bottom: 2.5mm; padding: 3mm; }
+      .kartu-judul { margin-bottom: 1mm; }
+      .kartu-judul img { width: 7mm; height: 7mm; }
+      .kartu-judul h2 { font-size: 11pt; }
+      .ayat-teks { margin-bottom: 0; font-size: 9.5pt; line-height: 1.3; }
+      .ayat-sumber { font-size: 8pt; }
+      .pertanyaan { margin-bottom: 1.5mm; font-size: 9.5pt; }
+      #refleksi { min-height: 21mm; }
+      #catatan { min-height: 14mm; }
+      .mood { gap: 2mm; }
+      .mood-judul { margin-bottom: 1mm; }
+      .mood span { flex-direction: row; justify-content: center; gap: 1.5mm; padding: 0.5mm; border-width: 0.4mm; font-size: 8pt; }
+      .mood b { font-size: 12pt; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-bar" aria-label="Navigasi utama">
+    <a class="nav-title" href="../index.html">Jurnal Ramadhan</a>
+    <a href="../menu.html">Menu</a>
+    <a href="index.html">30 Hari</a>
+    <a href="../tracker.html">Tracker</a>
+  </nav>
+
+  <main class="page">
+    <!-- Tampil kalau ?hari= di alamat salah -->
+    <div class="card card-rose" id="pesanSalah" hidden>
+      <h1>Hari tidak ditemukan</h1>
+      <p>Jurnal hanya ada untuk hari 1 sampai 30.</p>
+      <p><a class="btn-primary" href="index.html">Lihat daftar hari</a></p>
+    </div>
+
+    <div id="isiJurnal" hidden>
+      <header class="page-header page-header-hias">
+        <div class="logo-bar">
+          <img src="../assets/logo-fmdki.png" alt="Logo FMDKI">
+          <img src="../assets/logo-karimah.png" alt="Logo KARIMAH">
+        </div>
+        <div class="pil-baris">
+          <span class="pil" id="teksLevel"></span>
+          <span class="pil" id="teksTema"></span>
+        </div>
+        <h1 id="teksHari"></h1>
+        <p class="quote" id="teksJudul"></p>
+        <p class="tanggal" id="teksTanggal"></p>
+      </header>
+
+      <!-- data-autoload: storage.js mengisi form dari jurnal-hari-N saat dibuka -->
+      <form id="formJurnal" data-autoload="jurnal" autocomplete="off">
+        <section class="card card-gold">
+          <div class="kartu-judul"><img src="../assets/ikon-quran.svg" alt=""><h2>Bekal Hari Ini</h2></div>
+          <p class="ayat-teks" id="teksAyat"></p>
+          <p class="ayat-sumber" id="teksSumber"></p>
+        </section>
+
+        <section class="card card-green">
+          <div class="kartu-judul"><img src="../assets/ikon-jurnal.svg" alt=""><h2>Refleksi</h2></div>
+          <p class="pertanyaan" id="teksRefleksi"></p>
+          <div class="field">
+            <textarea id="refleksi" name="refleksi" aria-labelledby="teksRefleksi" placeholder="Tulis dengan jujur, hanya kamu dan Allah yang tahu..."></textarea>
+          </div>
+        </section>
+
+        <section class="card card-rose">
+          <div class="kartu-judul"><img src="../assets/ikon-lampu.svg" alt=""><h2>Upgrade Challenge</h2></div>
+          <p class="pertanyaan" id="teksChallenge"></p>
+          <div class="field">
+            <textarea id="catatan" name="catatan" aria-labelledby="teksChallenge" placeholder="Catatan challenge..."></textarea>
+          </div>
+        </section>
+
+        <section class="card card-lav">
+          <div class="kartu-judul mood-judul"><img src="../assets/ikon-hati.svg" alt=""><h2 id="judulMood">Mood Hari Ini</h2></div>
+          <div class="mood" role="radiogroup" aria-labelledby="judulMood">
+            <label><input type="radio" name="mood" value="senang"><span><b aria-hidden="true">😊</b>Bahagia</span></label>
+            <label><input type="radio" name="mood" value="biasa"><span><b aria-hidden="true">😐</b>Biasa saja</span></label>
+            <label><input type="radio" name="mood" value="sedih"><span><b aria-hidden="true">😔</b>Sedih</span></label>
+          </div>
+        </section>
+      </form>
+
+      <p class="status no-print" id="status" role="status"></p>
+
+      <nav class="navigasi no-print" aria-label="Pindah hari">
+        <a class="btn-gold" id="linkSebelum"></a>
+        <a class="btn-primary" id="linkSesudah"></a>
+      </nav>
+      <p class="aksi no-print"><button class="tautan-cetak" type="button" id="tombolCetak">Cetak hari ini</button></p>
+    </div>
+  </main>
+
+  <script src="../transisi.js"></script>
+  <script src="data.js"></script>
+  <script src="../storage.js"></script>
+  <script>
+    const el = function (id) { return document.getElementById(id); };
+    const form = el("formJurnal");
+
+    /* ============ 1. URL PARAMETER ============
+       Alamat: template.html?hari=7
+       location.search berisi "?hari=7", lalu URLSearchParams mengambil "7".
+       Number() mengubah teks "7" menjadi angka 7. Tanpa ?hari= dianggap 1. */
+    const hari = Number(new URLSearchParams(location.search).get("hari") || 1);
+    const isi = Number.isInteger(hari) ? JURNAL[hari] : undefined;
+
+    if (isi) mulai();
+    else el("pesanSalah").hidden = false;
+
+    /* ============ 2. DYNAMIC CONTENT ============
+       Satu HTML untuk 30 hari: tempat kosongnya diisi dari JURNAL[hari].
+       textContent menulis sebagai teks biasa, bukan kode HTML. */
+    function mulai() {
+      // Auto-load di storage.js memakai hari yang sama persis dengan auto-save
+      form.dataset.hari = hari;
+
+      const level = levelHari(hari);
+      document.title = "Hari " + hari + ": " + isi.judul + " | Jurnal Ramadhan 1448 H";
+
+      el("teksHari").textContent = "Hari ke " + hari + " Ramadhan 1448 H";
+      el("teksLevel").textContent = "Level " + level + ": " + LEVEL[level].nama;
+      el("teksTema").textContent = isi.tema;
+      el("teksJudul").textContent = isi.judul;
+      el("teksTanggal").textContent = tanggalHari(hari);
+      el("teksAyat").textContent = isi.ayat;
+      el("teksSumber").textContent = isi.sumber;
+      el("teksRefleksi").textContent = isi.refleksi;
+      el("teksChallenge").textContent = isi.challenge;
+
+      const sebelum = el("linkSebelum"), sesudah = el("linkSesudah");
+      sebelum.href = hari > 1 ? "template.html?hari=" + (hari - 1) : "../menu.html";
+      sebelum.textContent = hari > 1 ? "‹ Hari " + (hari - 1) : "‹ Daftar isi";
+      sesudah.href = hari < JUMLAH_HARI ? "template.html?hari=" + (hari + 1) : "../penutup.html";
+      sesudah.textContent = hari < JUMLAH_HARI ? "Hari " + (hari + 1) + " ›" : "Penutup ›";
+
+      el("isiJurnal").hidden = false;
+      pasangAutoSave();
+    }
+
+    /* ============ 3. AUTO-SAVE ============
+       Menyimpan setengah detik setelah berhenti mengetik, bukan tiap huruf.
+       Kuncinya "jurnal-hari-N", dibuat oleh saveJournal() di storage.js. */
+    let jeda = null;
+
+    function simpan() {
+      clearTimeout(jeda);
+      jeda = null;
+      const berhasil = saveJournal(hari, bacaForm(form));
+      el("status").textContent = berhasil ? "Tersimpan otomatis ✓" : "Gagal menyimpan. Memori penuh atau diblokir.";
+      el("status").classList.toggle("gagal", !berhasil);
+    }
+
+    function pasangAutoSave() {
+      form.addEventListener("input", function () {
+        el("status").textContent = "Menyimpan...";
+        clearTimeout(jeda);
+        jeda = setTimeout(simpan, 500);
+      });
+
+      // Enter tidak boleh mengirim form
+      form.addEventListener("submit", function (e) { e.preventDefault(); });
+
+      // Pindah halaman atau tutup tab sebelum setengah detik: simpan saat itu juga
+      window.addEventListener("pagehide", function () { if (jeda) simpan(); });
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "hidden" && jeda) simpan();
+      });
+
+      // Diisi di tab lain: perbarui tab ini, kecuali sedang diketik di sini
+      window.addEventListener("storage", function (e) {
+        if (e.key === kunciHari(hari) && !jeda) isiForm(form, loadJournal(hari));
+      });
+
+      el("tombolCetak").addEventListener("click", function () { window.print(); });
+    }
+  </script>
+</body>
+</html>

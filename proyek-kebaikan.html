@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Proyek Kebaikan | Jurnal Ramadhan 1448 H</title>
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="print.css">
+  <style>
+    /* Gaya khusus proyek kebaikan */
+    /* Empat kotak: dua baris, dua kolom */
+    @media (min-width: 560px) { #daftarProyek { grid-template-columns: 1fr 1fr; } }
+
+    .proyek { display: flex; flex-direction: column; align-items: center; }
+    .proyek > button { margin-top: auto; }
+    .proyek .field { width: 100%; }
+    .proyek .field input { text-align: center; }
+    .cetak { margin: var(--space-5) 0 0; text-align: center; }
+
+    .proyek { text-align: center; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .proyek.dipilih { border-width: 3px; border-color: var(--green-mid); box-shadow: 0 10px 30px rgba(63, 102, 80, 0.18); }
+    .proyek:hover { transform: translateY(-4px); }
+    .proyek h3 { font-size: 1.15rem; }
+
+    /* Kubus 3D dari CSS yang berputar pelan */
+    .ruang3d { height: 104px; perspective: 500px; }
+
+    .kubus {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      margin: 18px auto 0;
+      transform-style: preserve-3d;
+      animation: putar-kubus 12s linear infinite;
+    }
+
+    .kubus span {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #ffffff;
+      border-radius: 12px;
+      background: var(--warna);
+      font-size: 1.8rem;
+    }
+
+    .kubus span:nth-child(1) { transform: translateZ(32px); }
+    .kubus span:nth-child(2) { transform: rotateY(90deg) translateZ(32px); }
+    .kubus span:nth-child(3) { transform: rotateY(180deg) translateZ(32px); }
+    .kubus span:nth-child(4) { transform: rotateY(270deg) translateZ(32px); }
+    .kubus span:nth-child(5) { transform: rotateX(90deg) translateZ(32px); }
+    .kubus span:nth-child(6) { transform: rotateX(270deg) translateZ(32px); }
+
+    @keyframes putar-kubus {
+      from { transform: rotateX(-18deg) rotateY(0); }
+      to { transform: rotateX(-18deg) rotateY(360deg); }
+    }
+
+    .langkah {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-2);
+      margin: var(--space-5) 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: langkah;
+    }
+
+    .langkah li { position: relative; font-size: 0.85rem; font-weight: 600; text-align: center; counter-increment: langkah; }
+
+    .langkah li::before {
+      content: counter(langkah);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      margin: 0 auto var(--space-2);
+      border-radius: 50%;
+      background: var(--sage);
+      color: var(--green-deep);
+      font-weight: 700;
+    }
+
+    .langkah li:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      top: 19px;
+      left: calc(50% + 24px);
+      right: calc(-50% + 24px);
+      height: 2px;
+      background: var(--sage);
+    }
+
+    .status { min-height: 1.7em; margin: 0; color: var(--green-mid); font-size: 0.9rem; font-weight: 600; text-align: center; }
+    .status.gagal { color: #a03a52; }
+    .penutup-kutipan { margin: var(--space-6) 0 0; text-align: center; }
+
+    @media (max-width: 560px) {
+      .langkah { grid-template-columns: 1fr 1fr; row-gap: var(--space-4); }
+      .langkah li:nth-child(2)::after { display: none; }
+    }
+
+    @media print {
+      .ruang3d, .langkah { display: none; }
+      .page-header { margin-bottom: 2mm; padding: 2.5mm; }
+      .grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 2mm; margin-bottom: 3mm; }
+      .card { margin-bottom: 2mm; padding: 2.5mm 3mm; }
+      .proyek { transform: none; }
+      .proyek h3, .proyek p { margin-bottom: 0.5mm; font-size: 9pt; line-height: 1.3; }
+      .proyek h3 { font-size: 10pt; }
+      .proyek .field { margin: 0; }
+
+      /* Sudah memilih: hanya proyek pilihan yang dicetak */
+      .ada-pilihan .grid { grid-template-columns: 1fr !important; }
+      .ada-pilihan .field textarea { min-height: 20mm; }
+      input[type="date"]:invalid { color: transparent; }
+      .ada-pilihan .proyek:not(.dipilih) { display: none; }
+      .proyek.dipilih { border-width: 0.5mm; box-shadow: none; }
+
+      /* Belum memilih: form kosong ikut dicetak supaya bisa ditulis tangan */
+      #formProyek[hidden] { display: block !important; }
+      #formProyek h2 { margin-bottom: 1mm; font-size: 12pt; }
+      .field { margin-bottom: 1.5mm; }
+      .field label { margin: 0; font-size: 8.5pt; }
+      .field textarea { min-height: 11mm; padding: 1.5mm; }
+      .field input { min-height: 7mm !important; padding: 1mm !important; }
+      .penutup-kutipan { margin-top: 1.5mm; font-size: 10pt; }
+    }
+  </style>
+</head>
+<body data-aksen>
+  <nav class="nav-bar" aria-label="Navigasi utama">
+    <a class="nav-title" href="index.html">Jurnal Ramadhan</a>
+    <a href="menu.html">Menu</a>
+    <a href="profil.html">Profil</a>
+    <a href="tracker.html">Tracker</a>
+  </nav>
+
+  <main class="page">
+    <header class="page-header page-header-hias">
+      <div class="logo-bar">
+        <img src="assets/logo-fmdki.png" alt="Logo FMDKI">
+        <img src="assets/logo-karimah.png" alt="Logo KARIMAH">
+      </div>
+      <h1>Project Kebaikan Ramadhanku</h1>
+      <p class="quote">Pilih satu, mulai dari yang kecil</p>
+    </header>
+
+    <div class="grid" id="daftarProyek">
+      <article class="card card-green proyek" data-proyek="social" style="--warna:var(--sage)">
+        <div class="ruang3d" aria-hidden="true"><div class="kubus"><span>🎬</span><span>💚</span><span>🎬</span><span>💚</span><span></span><span></span></div></div>
+        <h3>Social Experiment Kampus</h3>
+        <p>Buat video kebaikan yang menyentuh hati teman kampus, lalu sebarkan pesannya.</p>
+        <button class="btn-primary" type="button">Pilih Proyek Ini</button>
+      </article>
+      <article class="card card-gold proyek" data-proyek="kreativitas" style="--warna:var(--honey)">
+        <div class="ruang3d" aria-hidden="true"><div class="kubus"><span>🎨</span><span>✨</span><span>🎨</span><span>✨</span><span></span><span></span></div></div>
+        <h3>Lomba Kreativitas</h3>
+        <p>Rancang carousel Instagram tentang Ramadhan yang rapi, hangat, dan bermanfaat.</p>
+        <button class="btn-gold" type="button">Pilih Proyek Ini</button>
+      </article>
+      <article class="card card-lav proyek" data-proyek="event" style="--warna:var(--lav)">
+        <div class="ruang3d" aria-hidden="true"><div class="kubus"><span>🕌</span><span>🌙</span><span>🕌</span><span>🌙</span><span></span><span></span></div></div>
+        <h3>Mini Event Dakwah</h3>
+        <p>Adakan acara kecil di kampus: kajian singkat, berbagi takjil, atau bedah buku.</p>
+        <button class="btn-primary" type="button">Pilih Proyek Ini</button>
+      </article>
+      <article class="card card-rose proyek" data-proyek="sendiri" style="--warna:var(--rose)">
+        <div class="ruang3d" aria-hidden="true"><div class="kubus"><span>✏️</span><span>🌸</span><span>✏️</span><span>🌸</span><span></span><span></span></div></div>
+        <h3>Proyekku Sendiri</h3>
+        <p>Punya ide lain? Tulis nama proyek kebaikanmu di sini.</p>
+        <div class="field"><input id="namaSendiri" type="text" maxlength="60" placeholder="Nama proyekku" aria-label="Nama proyekku sendiri" autocomplete="off"></div>
+        <button class="btn-gold" type="button">Pilih Proyek Ini</button>
+      </article>
+    </div>
+
+    <ol class="langkah no-print" aria-label="Langkah proyek">
+      <li>Niat dan ide</li>
+      <li>Ajak teman</li>
+      <li>Jalankan</li>
+      <li>Syukuri dan evaluasi</li>
+    </ol>
+
+    <!-- Muncul setelah satu proyek dipilih -->
+    <form class="card" id="formProyek" autocomplete="off" hidden>
+      <h2 id="judulRencana">Rencana Aksiku</h2>
+      <div class="field">
+        <label for="ide">Ide proyekku</label>
+        <textarea id="ide" name="ide"></textarea>
+      </div>
+      <div class="field">
+        <label for="tim">Siapa yang kuajak?</label>
+        <input id="tim" name="tim" type="text">
+      </div>
+      <div class="field">
+        <label for="tanggal">Kapan dimulai?</label>
+        <input id="tanggal" name="tanggal" type="date" required>
+      </div>
+      <div class="field">
+        <label for="langkah">Langkah pertamaku</label>
+        <textarea id="langkah" name="langkah"></textarea>
+      </div>
+      <div class="field">
+        <label for="dampak">Dampak yang kuharapkan</label>
+        <textarea id="dampak" name="dampak"></textarea>
+      </div>
+      <p class="status no-print" id="status" role="status"></p>
+    </form>
+
+    <p class="cetak no-print"><button class="btn-gold" type="button" id="tombolCetak">Cetak halaman ini</button></p>
+
+    <p class="quote penutup-kutipan">"Berdampak bagi Negeri dimulai dari satu langkah kecilmu hari ini."</p>
+  </main>
+
+  <script src="transisi.js"></script>
+  <script src="storage.js"></script>
+  <script>
+    /* Data: { pilihan: "event", namaSendiri: "Kelas Tahsin", rencana: { event: { ide: "...", tim: "..." } } }
+       Tiap proyek punya rencana sendiri, jadi ganti pilihan tidak menghapus isian. */
+    const form = document.getElementById("formProyek");
+    const kartu = Array.from(document.querySelectorAll(".proyek"));
+    const statusSimpan = document.getElementById("status");
+    const data = loadProyek();
+    if (!data.rencana || typeof data.rencana !== "object" || Array.isArray(data.rencana)) data.rencana = {};
+    const namaSendiri = document.getElementById("namaSendiri");
+    namaSendiri.value = typeof data.namaSendiri === "string" ? data.namaSendiri : "";
+    let jeda = null;
+
+    function simpan() {
+      clearTimeout(jeda);
+      jeda = null;
+      data.namaSendiri = namaSendiri.value.trim();
+      if (!form.hidden) data.rencana[data.pilihan] = bacaForm(form);
+      const berhasil = saveProyek(data);
+      statusSimpan.textContent = berhasil ? "Tersimpan otomatis ✓" : "Gagal menyimpan. Memori penuh atau diblokir.";
+      statusSimpan.classList.toggle("gagal", !berhasil);
+    }
+
+    function tulisJudul(kotak) {
+      const nama = data.pilihan === "sendiri" && namaSendiri.value.trim();
+      document.getElementById("judulRencana").textContent = "Rencana Aksiku: " + (nama || kotak.querySelector("h3").textContent);
+    }
+
+    function tampilkan() {
+      const terpilih = kartu.find(function (k) { return k.dataset.proyek === data.pilihan; });
+      form.hidden = !terpilih;
+      document.body.classList.toggle("ada-pilihan", !!terpilih);
+      kartu.forEach(function (k) {
+        const ya = k === terpilih;
+        k.classList.toggle("dipilih", ya);
+        const tombol = k.querySelector("button");
+        tombol.textContent = ya ? "Proyek pilihanku ✓" : "Pilih Proyek Ini";
+        tombol.setAttribute("aria-pressed", ya);
+      });
+      if (!terpilih) return;
+      tulisJudul(terpilih);
+      form.reset();
+      isiForm(form, data.rencana[data.pilihan] || {});
+      statusSimpan.textContent = "";
+    }
+
+    document.getElementById("daftarProyek").addEventListener("click", function (e) {
+      const tombol = e.target.closest("button");
+      if (!tombol) return;
+      if (jeda) simpan(); // amankan ketikan terakhir sebelum berganti proyek
+      const kotak = tombol.closest(".proyek");
+      data.pilihan = kotak.dataset.proyek;
+      saveProyek(data);
+      Suara.lonceng();
+      tampilkan();
+      // Proyek sendiri tanpa nama: minta namanya dulu
+      if (data.pilihan === "sendiri" && !namaSendiri.value.trim()) namaSendiri.focus();
+      else form.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    function tungguSimpan() {
+      statusSimpan.textContent = "Menyimpan...";
+      clearTimeout(jeda);
+      jeda = setTimeout(simpan, 500);
+    }
+    form.addEventListener("input", tungguSimpan);
+    namaSendiri.addEventListener("input", function () {
+      if (data.pilihan === "sendiri") tulisJudul(namaSendiri.closest(".proyek"));
+      tungguSimpan();
+    });
+    document.getElementById("tombolCetak").addEventListener("click", function () {
+      if (jeda) simpan();
+      window.print();
+    });
+    form.addEventListener("submit", function (e) { e.preventDefault(); });
+    window.addEventListener("pagehide", function () { if (jeda) simpan(); });
+
+    tampilkan();
+  </script>
+</body>
+</html>

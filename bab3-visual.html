@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Level 3: Totalitas | Jurnal Ramadhan 1448 H</title>
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="print.css">
+  <style>
+    /* Gaya bersama halaman Level ada di style.css bagian 9 */
+    .bab { background: linear-gradient(165deg, #d9cfec, #efe9f7 50%, #fbeef2); }
+  </style>
+</head>
+<body data-bab="3">
+  <nav class="nav-bar" aria-label="Navigasi utama">
+    <a class="nav-title" href="index.html">Jurnal Ramadhan</a>
+    <a href="menu.html">Menu</a>
+    <a href="jurnal/index.html">30 Hari</a>
+    <a href="tracker.html">Tracker</a>
+  </nav>
+
+  <main class="bab">
+    <canvas id="kanvas" aria-hidden="true"></canvas>
+    <div class="bab-ruang" id="ruang"></div>
+
+    <div class="bab-teks">
+      <div class="logo-bar">
+        <img src="assets/logo-fmdki.png" alt="Logo FMDKI">
+        <img src="assets/logo-karimah.png" alt="Logo KARIMAH">
+      </div>
+      <p class="bab-hari">Hari 21 sampai 30</p>
+      <h1>Level 3: Totalitas</h1>
+      <p class="quote">"Menata Ruang Diri, Berdampak bagi Negeri. Ini bukan sekadar ibadah, ini persiapan jadi khalifah."</p>
+      <div class="bab-ayat">
+        <p id="ayat"></p>
+        <p id="sumber"></p>
+      </div>
+      <a class="btn-gold bab-tombol" id="tombolMulai" href="jurnal/template.html?hari=21">Mulai Hari 21</a>
+      <p class="bab-balik"><a href="menu.html">Kembali ke daftar isi</a></p>
+    </div>
+  </main>
+
+  <script src="transisi.js"></script>
+  <script src="jurnal/data.js"></script>
+  <script src="bab3d.js"></script>
+</body>
+</html>

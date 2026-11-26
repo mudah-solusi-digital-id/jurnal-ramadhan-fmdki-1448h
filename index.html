@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Jurnal Ramadhan 1448 H | FMDKI x KARIMAH 2027</title>
+  <meta name="description" content="Masuk ke kamar muslimah, buka Al Qur'an, dan mulai isi Jurnal Ramadhan 1448 H.">
+  <meta name="theme-color" content="#fff8f6">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="print.css">
+  <!-- Font cadangan bergaya mushaf -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri+Quran&display=swap">
+  <style>
+    /* Font mushaf Madinah (Utsmani) dari Quran Foundation */
+    @font-face {
+      font-family: "Uthmanic Hafs";
+      src: url("https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2") format("woff2");
+      font-display: swap;
+    }
+
+    html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+    body { background: #fff8f6; }
+
+    .panggung { position: fixed; inset: 0; transition: opacity 0.6s ease; }
+    body.keluar .panggung { opacity: 0; }
+
+    #kanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      touch-action: none; /* geser dan cubit ditangani kamar.js */
+      cursor: grab;
+      transition: opacity 0.8s ease;
+    }
+
+    #kanvas:active { cursor: grabbing; }
+    #kanvas.siap { opacity: 1; }
+
+    /* --- Logo di pojok --- */
+    .logo-pojok {
+      position: absolute;
+      z-index: 10;
+      top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
+      left: var(--space-4);
+      right: var(--space-4);
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .logo-pojok img {
+      height: clamp(34px, 9vw, 48px);
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    /* --- Sambutan di depan pintu --- */
+    .sambutan {
+      position: absolute;
+      z-index: 10;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 56px var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+      background: linear-gradient(to top, #ffffff 60%, rgba(255, 255, 255, 0));
+      text-align: center;
+      transition: opacity 0.4s ease;
+    }
+
+    .sambutan.pergi { opacity: 0; pointer-events: none; }
+    .sambutan h1 { margin-bottom: var(--space-1); font-size: clamp(1.6rem, 5vw, 2.4rem); }
+    .sambutan .quote { margin-bottom: var(--space-4); }
+    .lewati { display: inline-block; margin-top: var(--space-2); padding: var(--space-2); font-size: 0.9rem; }
+
+    /* --- Label dua benda --- */
+    .label-benda {
+      position: absolute;
+      z-index: 8;
+      top: 0;
+      left: 0;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 var(--space-4);
+      border: 2px solid var(--honey);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--green);
+      font: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(138, 100, 48, 0.18);
+      cursor: pointer;
+    }
+
+    .label-benda[data-arah="kiri"]::before { content: "\2039\00a0"; }
+    .label-benda[data-arah="kanan"]::after { content: "\00a0\203A"; }
+
+    /* --- Petunjuk dan tombol jelajah --- */
+    .petunjuk {
+      position: absolute;
+      z-index: 7;
+      top: calc(76px + env(safe-area-inset-top, 0px));
+      left: 50%;
+      width: max-content;
+      max-width: calc(100% - 32px);
+      margin: 0;
+      padding: var(--space-2) var(--space-4);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      font-size: 0.85rem;
+      text-align: center;
+      transform: translateX(-50%);
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+
+    .petunjuk.pergi { opacity: 0; }
+
+    .jelajah {
+      position: absolute;
+      z-index: 9;
+      left: 50%;
+      bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      gap: var(--space-2);
+      transform: translateX(-50%);
+    }
+
+    .jelajah button {
+      width: 52px;
+      height: 52px;
+      border: 1.5px solid var(--sage);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--green);
+      font: inherit;
+      font-size: 1.3rem;
+      line-height: 1;
+      cursor: pointer;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .jelajah button:active { background: var(--sage-light); }
+    .jelajah button[hidden] { display: none; }
+
+    /* --- Panel saat duduk, rebahan, atau di sajadah --- */
+    .panel-pose {
+      position: absolute;
+      z-index: 9;
+      left: 50%;
+      bottom: calc(var(--space-4) + 64px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      width: max-content;
+      max-width: calc(100% - 32px);
+      transform: translateX(-50%);
+    }
+
+    .panel-pose[hidden] { display: none; }
+
+    .panel-pose p {
+      margin: 0;
+      padding: var(--space-1) var(--space-3);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--green);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .panel-pose div { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); }
+
+    /* Bulatan warna tinta saat menulis */
+    .panel-pose div button.tinta {
+      width: 44px;
+      min-width: 44px;
+      padding: 0;
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 1.5px var(--sage), 0 4px 12px rgba(63, 102, 80, 0.15);
+    }
+    .panel-pose div button.tinta[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--honey), 0 4px 12px rgba(63, 102, 80, 0.2); transform: scale(1.1); }
+
+    .panel-pose button {
+      min-height: 44px;
+      padding: 0 var(--space-4);
+      border: 1.5px solid var(--sage);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--green);
+      font: inherit;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(63, 102, 80, 0.15);
+    }
+
+    @media (max-width: 400px) {
+      .panel-pose div { gap: 6px; }
+      .panel-pose button { padding: 0 var(--space-3); font-size: 0.9rem; }
+    }
+
+    .panel-pose button:first-child { border-color: var(--honey); background: #fff7e6; }
+
+    /* --- Melihat pakaian dari dekat --- */
+    .panel-lihat[hidden] { display: none; }
+    .panel-lihat .lihat-nama {
+      position: absolute;
+      z-index: 9;
+      top: calc(76px + env(safe-area-inset-top, 0px));
+      left: 50%;
+      width: max-content;
+      max-width: calc(100% - 32px);
+      margin: 0;
+      color: var(--heading);
+      font-family: var(--font-heading, Georgia, serif);
+      font-size: clamp(1.2rem, 4.5vw, 1.6rem);
+      text-align: center;
+      transform: translateX(-50%);
+    }
+    .panel-lihat .lihat-petunjuk {
+      position: absolute;
+      z-index: 9;
+      top: calc(76px + 2.6rem + env(safe-area-inset-top, 0px));
+      left: 0;
+      right: 0;
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    .panel-lihat button {
+      position: absolute;
+      z-index: 9;
+      left: 50%;
+      bottom: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+    .panel-pose button:active { background: var(--sage-light); }
+
+    /* --- Lembar Al Qur'an --- */
+    .mushaf {
+      width: min(640px, calc(100% - 24px));
+      max-height: calc(100% - 24px);
+      padding: 0;
+      border: 0;
+      border-radius: 22px;
+      background: #fffdf6;
+      color: var(--text);
+      box-shadow: 0 20px 60px rgba(63, 102, 80, 0.25);
+      overflow: hidden;
+    }
+
+    .mushaf[open] { display: flex; flex-direction: column; }
+    .mushaf::backdrop { background: rgba(255, 248, 246, 0.82); }
+
+    .mushaf-atas {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+      border-bottom: 1px solid var(--honey);
+    }
+
+    .sumber-arti { display: block; color: var(--text-soft); font-size: 0.8rem; }
+
+    .tersembunyi { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+    .tema {
+      max-width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--sage);
+      color: var(--green);
+      font: inherit;
+      padding: 2px var(--space-3);
+      border-radius: 999px;
+      background: var(--sage-light);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .tutup {
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--green);
+      font: inherit;
+      font-size: 1.6rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    /* Bingkai dua garis seperti halaman mushaf */
+    .lembar-ayat {
+      flex: 1;
+      min-height: 0;
+      margin: var(--space-4);
+      padding: var(--space-4);
+      overflow-y: auto;
+      scrollbar-width: thin;
+      border: 2px solid #d9b06a;
+      outline: 2px solid #a9cbb0;
+      outline-offset: -8px;
+      border-radius: 10px;
+    }
+
+    .arab-utsmani {
+      margin: var(--space-2) var(--space-2) var(--space-4);
+      font-family: "Uthmanic Hafs", "Amiri Quran", "Amiri", "Traditional Arabic", serif;
+      font-size: clamp(1.65rem, 5.5vw, 2.2rem);
+      line-height: 2.15;
+      text-align: center;
+      color: #1d2a24;
+    }
+
+    .arab-utsmani.panjang { font-size: clamp(1.4rem, 4.6vw, 1.75rem); line-height: 2; }
+
+    .arti { margin: 0 var(--space-2) var(--space-3); text-align: center; }
+    .arti-label { margin-bottom: var(--space-1); color: var(--accent); font-size: 0.8rem; font-weight: 700; text-align: center; }
+    .rujukan { margin: 0; text-align: center; font-size: 0.9rem; }
+    .rujukan strong { display: block; color: var(--heading); }
+
+    .mushaf-bawah {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2);
+      padding: 0 var(--space-4) var(--space-4);
+    }
+
+    .mushaf-bawah button { min-width: 104px; padding-inline: var(--space-3); }
+    .nomor { margin: 0; font-size: 0.9rem; font-weight: 600; white-space: nowrap; }
+
+    /* --- Kalau 3D tidak didukung --- */
+    .tanpa-3d { position: absolute; inset: 0; z-index: 6; overflow-y: auto; padding: 96px var(--space-4) var(--space-6); background: linear-gradient(160deg, var(--sage-light), #ffffff 45%, var(--rose-light)); }
+    .tanpa-3d > div { max-width: 520px; margin: 0 auto; text-align: center; }
+    .tanpa-3d .link-card { width: 100%; border: 1px solid var(--honey); font: inherit; text-align: left; cursor: pointer; }
+
+    @media (max-height: 520px) and (orientation: landscape) {
+      .sambutan { padding-top: 48px; padding-bottom: var(--space-3); }
+      .sambutan h1 { font-size: 1.3rem; }
+      .sambutan .quote { margin-bottom: var(--space-2); font-size: 1rem; }
+      .lewati { margin-top: 0; }
+      .petunjuk { top: 62px; }
+      .jelajah { left: auto; right: var(--space-4); transform: none; }
+      .lembar-ayat { margin: var(--space-2); padding: var(--space-3); }
+      .arab-utsmani { margin-bottom: var(--space-2); line-height: 1.9; }
+      .mushaf-atas { padding-block: 0; }
+      .mushaf-bawah { padding-bottom: var(--space-2); }
+    }
+  </style>
+</head>
+<body>
+  <main class="panggung">
+    <canvas id="kanvas" aria-label="Kamar muslimah 3D. Geser untuk melihat sekeliling, sentuh kasur, kursi, atau sajadah untuk duduk."></canvas>
+
+    <div class="logo-bar logo-pojok">
+      <img src="assets/logo-fmdki.png" alt="Logo FMDKI">
+      <img src="assets/logo-karimah.png" alt="Logo KARIMAH">
+    </div>
+
+    <!-- Di depan pintu -->
+    <div class="sambutan" id="sambutan">
+      <h1>Jurnal Ramadhan 1448 H</h1>
+      <p class="quote">Space to Breathe, ada ruang tenang di balik pintu ini</p>
+      <button class="btn-primary" type="button" id="tombolMasuk">Ketuk &amp; masuk</button><br>
+      <a class="lewati" href="menu.html">Langsung ke daftar isi</a>
+    </div>
+
+    <!-- Di dalam kamar -->
+    <button class="label-benda" type="button" id="labelQuran" hidden>Al Qur'an</button>
+    <button class="label-benda" type="button" id="labelJurnal" hidden>Buku Jurnalku</button>
+    <p class="petunjuk" id="petunjuk" hidden>Geser untuk melihat sekeliling. Sentuh kasur, kursi, pulpen, rak buku, sajadah, TV, jendela, atau lemari.</p>
+    <div class="panel-pose" id="panelPose" role="group" aria-label="Pilihan gerakan" hidden>
+      <p id="judulPose" role="status"></p>
+      <div id="tombolPose"></div>
+    </div>
+    <div class="panel-lihat" id="panelLihat" hidden>
+      <p class="lihat-nama" id="lihatNama" role="status"></p>
+      <p class="lihat-petunjuk">Geser untuk memutar</p>
+      <button class="btn-primary" type="button" id="tutupLihat">&lsaquo; Kembali ke lemari</button>
+    </div>
+    <div class="jelajah" id="jelajah" role="group" aria-label="Jelajahi kamar" hidden>
+      <button type="button" data-gerak="kiri" aria-label="Menoleh ke kiri">&#8634;</button>
+      <button type="button" data-gerak="maju" aria-label="Maju">&#8593;</button>
+      <button type="button" data-gerak="mundur" aria-label="Mundur">&#8595;</button>
+      <button type="button" data-gerak="kanan" aria-label="Menoleh ke kanan">&#8635;</button>
+    </div>
+
+    <!-- Pengganti kalau 3D gagal -->
+    <div class="tanpa-3d" id="tanpa3d" hidden>
+      <div>
+        <h1>Jurnal Ramadhan 1448 H</h1>
+        <p class="quote">Space to Breathe, KARIMAH 2027</p>
+        <button class="card card-gold link-card" type="button" id="kartuQuran">
+          <img src="assets/ikon-quran.svg" alt="">
+          <span><strong>Al Qur'an</strong><small>30 ayat tentang wanita, iman, ilmu, sabar, dan surga</small></span>
+        </button>
+        <a class="card card-green link-card" href="cover.html">
+          <img src="assets/ikon-jurnal.svg" alt="">
+          <span><strong>Buku Jurnalku</strong><small>Mulai isi jurnal</small></span>
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Lembar ayat: satu ayat satu halaman -->
+  <dialog class="mushaf" id="mushaf" aria-labelledby="ayatRujukan">
+    <div class="mushaf-atas">
+      <label class="pilih-tema"><span class="tersembunyi">Pilih tema ayat</span><select class="tema" id="ayatTema"></select></label>
+      <button class="tutup" type="button" id="tutupMushaf" aria-label="Tutup Al Qur'an">&times;</button>
+    </div>
+    <div class="lembar-ayat" id="lembarAyat" tabindex="0">
+      <p class="arab-utsmani" id="ayatArab" lang="ar" dir="rtl"></p>
+      <p class="arti-label">Terjemahan</p>
+      <p class="arti" id="ayatArti"></p>
+      <p class="rujukan"><strong id="ayatRujukan"></strong><a id="ayatLink" target="_blank" rel="noopener">Baca lengkap di Quran.com</a></p>
+    </div>
+    <div class="mushaf-bawah">
+      <button class="btn-gold" type="button" id="ayatSebelum">&lsaquo; Sebelum</button>
+      <p class="nomor" id="ayatNomor" role="status"></p>
+      <button class="btn-primary" type="button" id="ayatSesudah">Sesudah &rsaquo;</button>
+    </div>
+  </dialog>
+
+  <script src="transisi.js"></script>
+  <script src="assets/logo-data.js"></script>
+  <script src="ayat.js"></script>
+  <script src="film-tv.js"></script>
+  <script src="kamar.js"></script>
+  <script>
+    const el = function (id) { return document.getElementById(id); };
+    const kurangiGerak = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let kamar = null;
+
+    /* ============ 1. BUKU JURNAL ============ */
+    function bukaJurnal() {
+      Suara.kertas();
+      document.body.classList.add("keluar");
+      setTimeout(function () { location.href = "cover.html"; }, kurangiGerak ? 0 : 600);
+    }
+
+    /* ============ 2. AL-QUR'AN: satu ayat satu halaman ============ */
+    const mushaf = el("mushaf");
+    let nomorAyat = 0;
+
+    function tampilkanAyat(n) {
+      const lama = nomorAyat;
+      nomorAyat = Math.max(0, Math.min(AYAT.length - 1, n));
+      if (lama !== nomorAyat) {
+        Suara.kertas();
+        balikLembar(nomorAyat > lama ? 1 : -1);
+      }
+      const a = AYAT[nomorAyat];
+      el("ayatTema").value = a.tema;
+      el("ayatArab").textContent = a.arab;
+      el("ayatArab").classList.toggle("panjang", a.arab.length > 180);
+      el("ayatArti").textContent = a.arti;
+      el("ayatRujukan").textContent = "QS " + a.nama + ": " + a.ayat;
+      el("ayatLink").href = "https://quran.com/" + a.surah + "/" + a.ayat;
+      el("ayatNomor").textContent = (nomorAyat + 1) + " / " + AYAT.length;
+      el("ayatSebelum").disabled = nomorAyat === 0;
+      el("ayatSesudah").disabled = nomorAyat === AYAT.length - 1;
+      el("lembarAyat").scrollTop = 0;
+    }
+
+    // Lembar ayat bergeser lembut saat dibalik
+    function balikLembar(arah) {
+      if (kurangiGerak || !el("lembarAyat").animate) return;
+      el("lembarAyat").animate(
+        [{ opacity: 0, transform: "translateX(" + arah * 24 + "px)" }, { opacity: 1, transform: "none" }],
+        { duration: 350, easing: "ease-out" }
+      );
+    }
+
+    function bukaMushaf() {
+      tampilkanAyat(nomorAyat);
+      if (kamar) kamar.jeda(true);
+      Suara.kertas();
+      mushaf.showModal();
+      el("lembarAyat").focus();
+    }
+
+    // Pilihan tema: langsung ke ayat pertama di tema itu
+    Array.from(new Set(AYAT.map(function (a) { return a.tema; }))).forEach(function (tema) {
+      el("ayatTema").add(new Option(tema, tema));
+    });
+    el("ayatTema").addEventListener("change", function () {
+      const tema = el("ayatTema").value;
+      tampilkanAyat(AYAT.findIndex(function (a) { return a.tema === tema; }));
+    });
+
+    el("ayatSebelum").addEventListener("click", function () { tampilkanAyat(nomorAyat - 1); });
+    el("ayatSesudah").addEventListener("click", function () { tampilkanAyat(nomorAyat + 1); });
+    el("tutupMushaf").addEventListener("click", function () { mushaf.close(); });
+    mushaf.addEventListener("click", function (e) { if (e.target === mushaf) mushaf.close(); });
+    mushaf.addEventListener("keydown", function (e) {
+      if (e.target === el("ayatTema")) return; // panah dipakai memilih tema
+      if (e.key === "ArrowRight") tampilkanAyat(nomorAyat + 1);
+      if (e.key === "ArrowLeft") tampilkanAyat(nomorAyat - 1);
+    });
+
+    // Geser kiri-kanan dengan jari untuk pindah ayat
+    let sentuhX = 0, sentuhY = 0;
+    el("lembarAyat").addEventListener("touchstart", function (e) {
+      sentuhX = e.touches[0].clientX;
+      sentuhY = e.touches[0].clientY;
+    }, { passive: true });
+    el("lembarAyat").addEventListener("touchend", function (e) {
+      const dx = e.changedTouches[0].clientX - sentuhX, dy = e.changedTouches[0].clientY - sentuhY;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) tampilkanAyat(nomorAyat + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+
+    // Jalan juga saat ditutup dengan tombol Esc
+    mushaf.addEventListener("close", function () {
+      if (kamar) {
+        kamar.jeda(false);
+        kamar.kembali();
+      }
+    });
+
+    /* ============ 3. KAMAR ============ */
+    function ingatMasuk() {
+      try { sessionStorage.setItem("sudah-masuk-kamar", "1"); } catch (err) { /* penyimpanan diblokir */ }
+    }
+
+    function pernahMasuk() {
+      try { return sessionStorage.getItem("sudah-masuk-kamar") === "1"; } catch (err) { return false; }
+    }
+
+    // Dipanggil kamar.js. nama null = sedang bergerak; "berdiri" = bebas berjalan lagi.
+    function tampilkanPose(nama, judul, pilihan) {
+      const panel = el("panelPose"), wadah = el("tombolPose");
+      const duduk = nama && nama !== "berdiri";
+      // Saat duduk atau rebahan hanya bisa menoleh, tombol maju mundur disembunyikan
+      el("jelajah").querySelectorAll('[data-gerak="maju"], [data-gerak="mundur"]').forEach(function (b) {
+        b.hidden = !!duduk;
+      });
+      el("jelajah").hidden = nama === "menulis"; // saat menulis, kamera diam di atas buku
+      wadah.textContent = "";
+      panel.hidden = !duduk;
+      if (!duduk) return;
+      el("judulPose").textContent = judul;
+      pilihan.forEach(function (p) {
+        const b = document.createElement("button");
+        b.type = "button";
+        if (p[1].indexOf("tinta:") === 0) { // bulatan warna tinta
+          b.className = "tinta";
+          b.style.background = p[1].slice(6);
+          b.setAttribute("aria-label", "Tinta " + p[0]);
+          b.setAttribute("aria-pressed", p[2] ? "true" : "false");
+        } else {
+          b.textContent = p[0];
+        }
+        b.addEventListener("click", function () {
+          if (p[1] === "hapus" && !confirm("Hapus semua coretan di buku?")) return;
+          if (p[1] === "rakAwal" && !confirm("Kembalikan susunan buku seperti semula?")) return;
+          kamar.pose(p[1]);
+        });
+        wadah.appendChild(b);
+      });
+    }
+
+    // Dipanggil kamar.js saat pakaian dibuka (nama) atau ditutup (null)
+    function tampilkanLihat(nama) {
+      const buka = !!nama;
+      el("panelLihat").hidden = !buka;
+      el("jelajah").hidden = buka;
+      el("panelPose").hidden = buka || !el("tombolPose").children.length;
+      if (buka) {
+        el("lihatNama").textContent = nama;
+        el("tutupLihat").focus();
+      }
+    }
+    el("tutupLihat").addEventListener("click", function () { if (kamar) kamar.tutupLihat(); });
+
+    function mulai() {
+      kamar = mulaiKamar({
+        kanvas: el("kanvas"),
+        label: { quran: el("labelQuran"), jurnal: el("labelJurnal") },
+        kurangiGerak: kurangiGerak,
+        langsungMasuk: pernahMasuk(), // kembali dari jurnal: tidak mengetuk lagi
+        saatMasuk: function () {
+          ingatMasuk();
+          el("sambutan").classList.add("pergi");
+          el("sambutan").inert = true;
+          el("petunjuk").hidden = false;
+          el("jelajah").hidden = false;
+          setTimeout(function () { el("petunjuk").classList.add("pergi"); }, 6000);
+        },
+        saatPilih: function (nama) { if (nama === "quran") bukaMushaf(); else bukaJurnal(); },
+        saatPose: tampilkanPose,
+        saatLihat: tampilkanLihat,
+        saatGagal: tanpa3D
+      });
+      el("kanvas").classList.add("siap");
+    }
+
+    el("tombolMasuk").addEventListener("click", function () {
+      if (!kamar) { // 3D masih dimuat atau gagal
+        location.href = "cover.html";
+        return;
+      }
+      el("sambutan").classList.add("pergi");
+      Suara.ketuk();
+      setTimeout(Suara.lonceng, 900);
+      kamar.masuk();
+    });
+
+    // Tombol jelajah: ditahan = terus bergerak
+    el("jelajah").querySelectorAll("button").forEach(function (b) {
+      const g = b.dataset.gerak;
+      b.addEventListener("pointerdown", function (e) {
+        e.preventDefault();
+        try { b.setPointerCapture(e.pointerId); } catch (err) { /* pointer sudah lepas */ }
+        kamar.tekan(g);
+      });
+      ["pointerup", "pointercancel", "lostpointercapture"].forEach(function (n) {
+        b.addEventListener(n, function () { kamar.lepasTombol(g); });
+      });
+      // Enter atau spasi dari keyboard
+      b.addEventListener("click", function (e) {
+        if (e.detail !== 0) return;
+        kamar.tekan(g);
+        setTimeout(function () { kamar.lepasTombol(g); }, 250);
+      });
+      b.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    });
+
+    // Kembali lewat tombol "back" dari halaman jurnal
+    window.addEventListener("pageshow", function () {
+      document.body.classList.remove("keluar");
+      if (kamar) kamar.pulihkan();
+    });
+
+    /* ============ 4. MEMUAT THREE.JS + FALLBACK ============ */
+    function tanpa3D() {
+      kamar = null;
+      ["sambutan", "labelQuran", "labelJurnal", "petunjuk", "jelajah", "panelPose", "panelLihat"].forEach(function (id) { el(id).hidden = true; });
+      el("kanvas").classList.remove("siap");
+      el("tanpa3d").hidden = false;
+    }
+    el("kartuQuran").addEventListener("click", bukaMushaf);
+
+    const skrip = document.createElement("script");
+    skrip.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+    skrip.onload = function () {
+      try {
+        mulai();
+      } catch (err) {
+        console.info("Kamar 3D tidak didukung:", err.message);
+        tanpa3D();
+      }
+    };
+    skrip.onerror = tanpa3D;
+    document.head.appendChild(skrip);
+  </script>
+</body>
+</html>

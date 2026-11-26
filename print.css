@@ -1,0 +1,198 @@
+/* ==========================================================================
+   print.css — Aturan khusus cetak A5
+
+   Muat SETELAH style.css di setiap halaman:
+     <link rel="stylesheet" href="style.css">
+     <link rel="stylesheet" href="print.css">
+
+   Kelas yang dipakai:
+     .journal-page  satu lembar A5
+     .no-print      disembunyikan saat cetak
+     .print-only    hanya muncul saat cetak
+   ========================================================================== */
+
+/* Satu-satunya aturan yang berlaku di layar */
+.print-only { display: none; }
+
+/* 1. KERTAS: A5 portrait. Area isi = 128mm x 190mm. */
+@page {
+  size: 148mm 210mm;
+  margin: 10mm;
+}
+
+@media print {
+  /* 2. WARNA: paksa latar tercetak, teks digelapkan, bayangan dihilangkan. */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  :root {
+    --text: #1d2622;
+    --text-soft: #4a554f;
+    --shadow: none;
+
+    /* 3. FONT CADANGAN: dipakai kalau Google Fonts tidak sempat termuat. */
+    --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+    --font-body: "Plus Jakarta Sans", Calibri, Arial, sans-serif;
+    --font-arab: "Amiri", "Traditional Arabic", "Sakkal Majalla", "Times New Roman", serif;
+  }
+
+  body {
+    font-size: 10pt;
+    line-height: 1.5;
+  }
+
+  h1 { font-size: 18pt; }
+  h2 { font-size: 14pt; }
+  h3 { font-size: 11pt; }
+  .arab { font-size: 16pt; line-height: 1.9; }
+
+  /* 4. SEMBUNYIKAN navigasi, tombol, dan input file */
+  .nav-bar,
+  .btn-primary,
+  .btn-gold,
+  .no-print,
+  button,
+  input[type="file"] {
+    display: none !important;
+  }
+
+  .print-only { display: block; }
+
+  /* 5. SATU HALAMAN JURNAL = SATU LEMBAR A5 */
+  .page {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .journal-page {
+    page-break-after: always; /* browser lama */
+    break-after: page;
+  }
+
+  /* Lembar terakhir tidak perlu pindah halaman, supaya tidak ada kertas kosong */
+  .journal-page:last-of-type {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  /* 6. RAPIKAN isi supaya muat dan tidak terpotong di tengah */
+  .page-header {
+    margin-bottom: 4mm;
+    padding: 4mm;
+  }
+
+  .page-header h1 { margin-bottom: 1mm; }
+  .page-header .quote { font-size: 10pt; }
+  .page-header .logo-bar { justify-content: center; margin-bottom: 2mm; }
+  .page-header .logo-bar img { height: 8mm; }
+
+  .page-header-hias::after {
+    right: 2mm;
+    width: 18mm;
+    height: 13mm;
+    animation: none;
+  }
+
+  .card {
+    margin-bottom: 4mm;
+    padding: 4mm;
+  }
+
+  .card,
+  .field,
+  .page-header,
+  tr,
+  img {
+    break-inside: avoid;
+  }
+
+  h2,
+  h3 { break-after: avoid; }
+
+  /* Tinggi textarea mengikuti isinya, jadi tulisan panjang tidak terpotong */
+  .field textarea {
+    field-sizing: content;
+    min-height: 30mm;
+    overflow: visible;
+    resize: none;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator { display: none; }
+
+  ::placeholder { color: transparent !important; }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* 7. LEMBAR JURNAL (lihat lembar.js) */
+  .lembar { page-break-before: always; break-before: page; }
+  .lembar .page-header { padding: 3mm; }
+  .lembar h2 { margin-bottom: 0; }
+  .lembar .quote, .lembar .kecil { margin: 0; }
+  .lembar .kecil { font-size: 8pt; }
+  .kutipan { margin-bottom: 3mm; padding: 2.5mm 3mm; border-radius: 3mm; background: var(--honey-light); font-family: var(--font-arab); font-size: 10pt; line-height: 1.35; }
+  .lembar h3 { margin-bottom: 1.5mm; font-family: var(--font-body); font-size: 9.5pt; }
+  .kotak-jawab { min-height: 26mm; margin-bottom: 3mm; padding: 2mm 3mm; border: 0.3mm solid var(--field-line); border-radius: 3mm; font-size: 9pt; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .kotak-jawab.tinggi { min-height: 58mm; }
+  .baris-mood { font-size: 10pt; white-space: pre; }
+  .kotak-jawab { break-inside: auto; }
+
+  /* 8. REKAP LENGKAP (lihat rekap.js) */
+  .kotak-jawab.pendek { min-height: 12mm; }
+  #rekapLengkap > .lembar:first-child { page-break-before: auto; break-before: auto; }
+  .cetak-rekap > :not(#rekapLengkap) { display: none !important; }
+  body:not(.cetak-rekap) > #rekapLengkap { display: none; } /* Ctrl+P biasa: hanya halaman penutup */
+  .lembar.sampul { text-align: center; }
+  .sampul .page-header { padding: 10mm 4mm; }
+  .sampul .page-header .logo-bar img { height: 13mm; }
+  .sampul .page-header h2 { font-size: 18pt; }
+  .rekap-foto { width: 38mm; height: 50mm; margin: 4mm auto; border: 1mm solid var(--sage); border-radius: 5mm; object-fit: cover; }
+  .rekap-nama { margin: 2mm 0; color: var(--heading); font-family: var(--font-display); font-size: 16pt; font-weight: 700; text-align: center; }
+  .rekap-data { display: grid; grid-template-columns: 30mm 1fr; gap: 1.5mm 4mm; margin: 4mm 6mm; padding: 4mm; border: 0.3mm solid var(--border); border-radius: 4mm; text-align: left; }
+  .rekap-data:empty { display: none; }
+  .rekap-data dt { color: var(--accent); font-weight: 700; }
+  .rekap-data dd { margin: 0; overflow-wrap: anywhere; }
+  .lembar .angka { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2mm; margin: 0 0 5mm; padding: 0; list-style: none; }
+  .lembar .angka li { padding: 2mm 1mm; border-radius: 3mm; background: var(--sage-light); font-size: 7.5pt; text-align: center; }
+  .lembar .angka li:nth-child(2n) { background: var(--honey-light); }
+  .lembar .angka li:nth-child(3n) { background: var(--rose-light); }
+  .lembar .angka strong { display: block; color: var(--green); font-family: var(--font-display); font-size: 13pt; }
+  .rekap-mood, .rekap-tilawah, .rekap-koin { display: grid; gap: 1.5mm; margin: 0 0 5mm; padding: 0; list-style: none; text-align: center; }
+  .rekap-mood { grid-template-columns: repeat(10, 1fr); }
+  .rekap-mood li { padding: 1mm 0; border-radius: 2mm; background: #f4f3f1; }
+  .rekap-mood small, .rekap-tilawah small { display: block; color: var(--text-soft); font-size: 6.5pt; }
+  .rekap-mood span { font-size: 12pt; line-height: 1.3; }
+  .lembar .mood-senang { background: var(--honey-light); }
+  .lembar .mood-biasa { background: var(--sage-light); }
+  .lembar .mood-sedih { background: var(--lav-light); }
+  .rekap-batang { display: grid; grid-template-columns: 32mm 1fr 16mm; align-items: center; gap: 2mm; margin-bottom: 2mm; font-size: 9pt; }
+  .rekap-batang .jalur { height: 5mm; overflow: hidden; border-radius: 3mm; background: #f4f3f1; }
+  .rekap-batang i { display: block; height: 100%; }
+  .rekap-batang i.mood-senang { background: var(--honey); }
+  .rekap-batang i.mood-biasa { background: var(--sage); }
+  .rekap-batang i.mood-sedih { background: var(--lav); }
+  .rekap-tabel { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .rekap-tabel th, .rekap-tabel td { height: 7.5mm; padding: 0; border: 0.2mm solid var(--border); font-size: 6pt; text-align: center; }
+  .rekap-tabel thead th { height: 5mm; background: var(--sage-light); font-size: 5pt; }
+  .rekap-tabel th:first-child { width: 28mm; padding-left: 1mm; background: var(--sage-light); font-size: 7pt; text-align: left; }
+  .rekap-tabel th.wajib { background: var(--honey-light) !important; }
+  .rekap-tabel th.lain { background: var(--lav-light) !important; }
+  .rekap-tabel td.ya { background: #86ae92; color: #0d1f18; font-weight: 700; }
+  .rekap-tilawah { grid-template-columns: repeat(6, 1fr); }
+  .rekap-tilawah li { padding: 1.2mm 0; border: 0.3mm solid var(--border); border-radius: 2mm; }
+  .rekap-tilawah li.khatam { border-color: #d4a45c; background: var(--honey-light); }
+  .rekap-tilawah b { font-size: 9pt; }
+  .rekap-koin { grid-template-columns: repeat(10, 1fr); justify-items: center; }
+  .rekap-koin li { display: flex; align-items: center; justify-content: center; width: 9mm; height: 9mm; border: 0.4mm dashed #d4a45c; border-radius: 50%; font-size: 8pt; }
+  .rekap-koin li.ya { border-style: solid; background: var(--gold); font-weight: 700; }
+  .rekap-ucapan { margin-top: 8mm; text-align: center; }
+  .rekap-coretan { display: block; width: 100%; height: auto; margin-top: 3mm; border: 0.4mm solid var(--rose); border-radius: 3mm; background: #fffdf6; }
+  .lembar h3 + .rekap-data { margin-top: 0; }
+}

@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Jurnal Ramadhan 1448 H | FMDKI x KARIMAH 2027</title>
+  <meta name="description" content="Jurnal Ramadhan 1448 H FMDKI: Space to Breathe, KARIMAH 2027.">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="print.css">
+  <style>
+    /* Gaya khusus cover. Warna dan font diambil dari style.css. */
+    body {
+      background: var(--bg);
+      color: var(--green);
+    }
+
+    .cover {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      min-height: 100svh;
+      overflow: hidden;
+      padding:
+        calc(var(--space-4) + env(safe-area-inset-top, 0px))
+        calc(var(--space-4) + env(safe-area-inset-right, 0px))
+        calc(var(--space-6) + env(safe-area-inset-bottom, 0px))
+        calc(var(--space-4) + env(safe-area-inset-left, 0px));
+      background: #ffffff;
+      transition: opacity 0.6s ease;
+    }
+
+    body.keluar .cover { opacity: 0; }
+
+    /* Saat buku dibuka: tulisan memudar, lalu layar menjadi putih kertas */
+    .logo-pojok, .teks { transition: opacity 0.5s ease; }
+    body.membuka .logo-pojok,
+    body.membuka .teks { opacity: 0; pointer-events: none; }
+
+    .tirai {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: #fffdfa;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+
+    .tirai.tutup { opacity: 1; }
+
+    /* Dipakai hanya kalau 3D gagal: gradient pastel mengisi ruang buku */
+    .cover.tanpa-3d {
+      background:
+        radial-gradient(ellipse at 50% 35%, var(--sage-light), transparent 55%),
+        radial-gradient(ellipse at 75% 20%, var(--rose-light), transparent 40%),
+        #ffffff;
+    }
+
+    /* Canvas di belakang, semua tulisan di depan */
+    #kanvas {
+      position: absolute;
+      z-index: 0;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1s ease;
+    }
+
+    #kanvas.siap { opacity: 1; }
+
+    .logo-pojok,
+    .ruang-buku,
+    .teks {
+      position: relative;
+      z-index: 10;
+    }
+
+    .logo-pojok { justify-content: space-between; }
+
+    .logo-pojok img { height: clamp(30px, 9vw, 48px); }
+
+    .logo-teks {
+      padding: var(--space-1) var(--space-3);
+      border: 1px solid var(--sage);
+      border-radius: 999px;
+      color: var(--green-mid);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    /* Ruang kosong tempat buku 3D. Ukurannya dibaca JavaScript. */
+    .ruang-buku {
+      flex: 1;
+      min-height: 220px;
+    }
+
+    .teks { text-align: center; }
+
+    .teks h1 {
+      margin-bottom: var(--space-2);
+      color: var(--green);
+      font-size: clamp(2rem, 6vw, 3.25rem);
+    }
+
+    .teks .quote {
+      margin-bottom: var(--space-5);
+      color: var(--accent);
+      font-size: clamp(1.15rem, 3vw, 1.5rem);
+    }
+
+    .kembali { margin: var(--space-2) 0 0; font-size: 0.9rem; }
+    .kembali a { display: inline-block; padding: var(--space-2); }
+
+    .cover :focus-visible { outline-color: var(--green); }
+
+    /* HP: canvas lebih pendek, tepi bawahnya memudar */
+    @media (max-width: 767px) {
+      #kanvas {
+        height: 72vh;
+        height: 72svh;
+        -webkit-mask-image: linear-gradient(#000 90%, transparent);
+        mask-image: linear-gradient(#000 90%, transparent);
+      }
+    }
+
+    /* Layar pendek melebar (HP miring): buku di kiri, tulisan di kanan */
+    @media (max-height: 520px) and (orientation: landscape) {
+      .cover {
+        display: grid;
+        grid-template: auto 1fr / 1fr 1fr;
+        padding-bottom: var(--space-4);
+      }
+
+      #kanvas {
+        height: 100%;
+        -webkit-mask-image: none;
+        mask-image: none;
+      }
+
+      .logo-pojok { grid-column: 1 / -1; }
+      .logo-pojok img { height: 36px; }
+      .ruang-buku { min-height: 0; }
+      .teks { align-self: center; }
+      .teks h1 { font-size: 1.75rem; }
+      .teks .quote { margin-bottom: var(--space-4); }
+    }
+  </style>
+  <script>
+    // Ditaruh di <head> karena gambar bisa gagal dimuat sebelum skrip di bawah jalan
+    function gantiLogo(img) {
+      const teks = document.createElement("span");
+      teks.className = "logo-teks";
+      teks.textContent = img.alt;
+      img.replaceWith(teks);
+    }
+  </script>
+</head>
+<body>
+  <div class="tirai" id="tirai"></div>
+  <main class="cover">
+    <canvas id="kanvas" aria-hidden="true"></canvas>
+
+    <!-- Kalau file logo belum ada, gambar diganti teks alt-nya -->
+    <div class="logo-bar logo-pojok">
+      <img src="assets/logo-fmdki.png" alt="Logo FMDKI" onerror="gantiLogo(this)">
+      <img src="assets/logo-karimah.png" alt="Logo KARIMAH" onerror="gantiLogo(this)">
+    </div>
+
+    <div class="ruang-buku" id="ruangBuku"></div>
+
+    <div class="teks">
+      <h1>Jurnal Ramadhan 1448 H</h1>
+      <p class="quote">Space to Breathe, KARIMAH 2027</p>
+      <a class="btn-gold" id="tombolBuka" href="menu.html">Buka Jurnalku</a>
+      <p class="kembali"><a href="index.html">Kembali ke kamar</a></p>
+    </div>
+  </main>
+
+  <script src="transisi.js"></script>
+  <script src="assets/logo-data.js"></script>
+  <script>
+    /* ============ A. TOMBOL BUKA (jalan tanpa Three.js) ============ */
+
+    let bukaBuku3D = null;     // diisi mulaiCover3D() kalau 3D jalan
+    let sedangMembuka = false;
+    const LAMA_FADE = 600; // milidetik, sama dengan transition .cover
+
+    document.getElementById("tombolBuka").addEventListener("click", function (e) {
+      // Ctrl/Shift/Cmd + klik tetap membuka tab atau jendela baru
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      const tujuan = this.href;
+      if (sedangMembuka) return;
+      sedangMembuka = true;
+      Suara.lonceng();
+
+      if (bukaBuku3D) {
+        document.body.classList.add("membuka");
+        bukaBuku3D(function () { location.href = tujuan; });
+      } else { // 3D tidak ada: cukup memudar
+        Suara.kertas();
+        document.body.classList.add("keluar");
+        setTimeout(function () { location.href = tujuan; }, LAMA_FADE);
+      }
+    });
+
+    // Tombol "kembali" browser bisa memulihkan halaman yang sudah memudar
+    window.addEventListener("pageshow", function (e) {
+      if (e.persisted && sedangMembuka) { location.reload(); return; }
+      document.body.classList.remove("keluar");
+    });
+
+    /* ============ B. COVER 3D ============ */
+
+    function mulaiCover3D() {
+      const kanvas = document.getElementById("kanvas");
+      const ruangBuku = document.getElementById("ruangBuku");
+      const layarKecil = window.matchMedia("(max-width: 767px)").matches;
+      const kurangiGerak = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      /* 1. RENDERER — menggambar scene ke canvas. alpha:true membuat latarnya
+            transparan, jadi latar putih CSS tetap terlihat. */
+      const renderer = new THREE.WebGLRenderer({ canvas: kanvas, alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, layarKecil ? 1.5 : 2));
+
+      /* 2. SCENE — panggung tempat semua objek */
+      const scene = new THREE.Scene();
+
+      /* 3. CAMERA — sudut pandang 26 derajat. Jaraknya diatur di bagian 7. */
+      const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 100);
+
+      /* 4. CAHAYA */
+      scene.add(new THREE.AmbientLight(0xffffff, 0.76));       // merata dan lembut
+      const matahari = new THREE.DirectionalLight(0xfff8ec, 0.34);
+      matahari.position.set(4, 6, 6);                           // kanan atas depan
+      scene.add(matahari);
+
+      /* 5. GEOMETRI BUKU — gabungan balok tipis dalam satu Group */
+      const LEBAR = 3, TINGGI = 4.2, TEBAL = 0.6, SAMPUL = 0.09;
+
+      // Palet pastel dari "Jurnal Mentee Pastel". Ganti kode warna di sini.
+      const bahan = function (warnaBahan) {
+        return new THREE.MeshStandardMaterial({ color: warnaBahan, roughness: 0.85 });
+      };
+      const sage = bahan(0xb7d3bc);      // sampul
+      const putih = bahan(0xfffdfa);     // panel di dalam bingkai
+      const emas = bahan(0xe3bd80);      // bingkai dan garis punggung
+      const rose = bahan(0xecc2d0);      // pita pembatas
+
+      // Semua benda 3D dikumpulkan di "panggung" supaya bisa berayun bersama
+      const panggung = new THREE.Group();
+      scene.add(panggung);
+
+      const buku = new THREE.Group();
+
+      function tambahBalok(induk, material, lebar, tinggi, tebal, x, y, z) {
+        const balok = new THREE.Mesh(new THREE.BoxGeometry(lebar, tinggi, tebal), material);
+        balok.position.set(x, y, z);
+        induk.add(balok);
+      }
+
+      // Tekstur garis halus supaya sisi kertas terlihat berlembar-lembar
+      function teksturKertas(garisTegak) {
+        const c = document.createElement("canvas");
+        c.width = c.height = 64;
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#fdfaf3";
+        ctx.fillRect(0, 0, 64, 64);
+        ctx.fillStyle = "#ebe2d8";
+        for (let i = 2; i < 64; i += 6) {
+          if (garisTegak) ctx.fillRect(i, 0, 2, 64);
+          else ctx.fillRect(0, i, 64, 2);
+        }
+        return new THREE.CanvasTexture(c);
+      }
+
+      const sisiSamping = new THREE.MeshStandardMaterial({ map: teksturKertas(true), roughness: 0.9 });
+      const sisiAtas = new THREE.MeshStandardMaterial({ map: teksturKertas(false), roughness: 0.9 });
+      // Urutan sisi BoxGeometry: kanan, kiri, atas, bawah, depan, belakang
+      // Halaman pertama, terlihat setelah sampul terbuka
+      const halamanAwal = new THREE.MeshBasicMaterial({ map: (function () {
+        const c = document.createElement("canvas");
+        c.width = 512;
+        c.height = 724;
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#fffdfa";
+        ctx.fillRect(0, 0, 512, 724);
+        ctx.strokeStyle = "#e3bd80";
+        ctx.lineWidth = 5;
+        ctx.strokeRect(34, 34, 444, 656);
+        ctx.strokeStyle = "#b7d3bc";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(46, 46, 420, 632);
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#24453a";
+        ctx.font = "italic 64px Georgia, serif";
+        ctx.fillText("Bismillah", 256, 320);
+        ctx.fillStyle = "#8a6430";
+        ctx.font = "italic 32px Georgia, serif";
+        ctx.fillText("mari mulai perjalananmu", 256, 385);
+        return new THREE.CanvasTexture(c);
+      })() });
+      const kertas = [sisiSamping, sisiSamping, sisiAtas, sisiAtas, halamanAwal, sisiSamping];
+
+      tambahBalok(buku, kertas, LEBAR - 0.16, TINGGI - 0.18, TEBAL, -0.04, 0, 0);
+
+      // Pita pembatas yang menjuntai di bawah kertas
+      tambahBalok(buku, rose, 0.16, 0.5, 0.03, 0.7, -TINGGI / 2 - 0.02, 0);
+
+      // Punggung buku + dua garis emas
+      const xPunggung = -(LEBAR - SAMPUL) / 2;
+      const tebalTotal = TEBAL + SAMPUL * 2;
+      // Dibuat sedikit menonjol supaya permukaannya tidak berimpit dengan sampul
+      tambahBalok(buku, sage, SAMPUL, TINGGI - 0.03, tebalTotal + 0.02, xPunggung - 0.01, 0, 0);
+      [1.45, -1.45].forEach(function (y) {
+        tambahBalok(buku, emas, SAMPUL + 0.03, 0.08, tebalTotal + 0.03, xPunggung, y, 0);
+      });
+
+      // Bulan sabit 3D: lengkung luar, lalu lengkung dalam berlawanan arah
+      function bentukSabit(R) {
+        const r = R * 0.8, geser = R * 0.37;
+        const x = (R * R - r * r + geser * geser) / (2 * geser);
+        const y = Math.sqrt(R * R - x * x);
+        const luar = Math.atan2(y, x), dalam = Math.atan2(y, x - geser);
+        const bentuk = new THREE.Shape();
+        bentuk.absarc(0, 0, R, luar, Math.PI * 2 - luar, false);
+        bentuk.absarc(geser, 0, r, -dalam, dalam, true);
+        return bentuk;
+      }
+
+      // Bintang segi delapan
+      function bentukBintang(jariLuar, jariDalam) {
+        const bentuk = new THREE.Shape();
+        for (let i = 0; i < 16; i++) {
+          const jari = i % 2 ? jariDalam : jariLuar;
+          const a = (i / 16) * Math.PI * 2;
+          if (i === 0) bentuk.moveTo(jari, 0);
+          else bentuk.lineTo(Math.cos(a) * jari, Math.sin(a) * jari);
+        }
+        bentuk.closePath();
+        return bentuk;
+      }
+
+      // Bulan sabit 2D untuk layar laptop dan HP
+      function lukisBulan(ctx, x, y, jari) {
+        const luar = 0.95, dalam = Math.atan2(Math.sin(luar), Math.cos(luar) - 0.4);
+        ctx.fillStyle = "#e3bd80";
+        ctx.beginPath();
+        ctx.arc(x, y, jari, luar, Math.PI * 2 - luar, false);
+        ctx.arc(x + jari * 0.4, y, jari * Math.hypot(Math.sin(luar), Math.cos(luar) - 0.4), -dalam, dalam, true);
+        ctx.fill();
+      }
+
+      // Menempelkan gambar logo (dari assets/logo-data.js) ke sampul
+      function tambahLogo(induk, gambar, lebar, rasio, y, z) {
+        const tekstur = new THREE.TextureLoader().load(gambar, function () {
+          renderer.render(scene, camera); // perlu saat buku diam
+        });
+        tekstur.anisotropy = renderer.capabilities.getMaxAnisotropy(); // tetap tajam saat miring
+        const logo = new THREE.Mesh(
+          new THREE.PlaneGeometry(lebar, lebar / rasio),
+          new THREE.MeshBasicMaterial({ map: tekstur, transparent: true, depthWrite: false })
+        );
+        logo.position.set(0, y, z);
+        induk.add(logo);
+      }
+
+      // Satu sampul lengkap: papan sage, panel putih, bingkai emas, dua logo
+      function buatSampul() {
+        const sampul = new THREE.Group();
+        tambahBalok(sampul, sage, LEBAR, TINGGI, SAMPUL, 0, 0, 0);
+
+        const z = SAMPUL / 2;
+        const bx = LEBAR / 2 - 0.22, by = TINGGI / 2 - 0.22;
+        tambahBalok(sampul, putih, bx * 2, by * 2, 0.02, 0, 0, z);
+        [by, -by].forEach(function (y) { tambahBalok(sampul, emas, bx * 2, 0.04, 0.03, 0, y, z); });
+        [bx, -bx].forEach(function (x) { tambahBalok(sampul, emas, 0.04, by * 2 + 0.04, 0.03, x, 0, z); });
+
+        if (typeof LOGO_FMDKI === "string") tambahLogo(sampul, LOGO_FMDKI, 2.25, 900 / 305, 0.6, z + 0.02);
+        if (typeof LOGO_KARIMAH === "string") tambahLogo(sampul, LOGO_KARIMAH, 2.25, 900 / 251, -0.55, z + 0.02);
+        return sampul;
+      }
+
+      // Sampul depan dipasang pada engsel di sisi punggung supaya bisa dibuka
+      const engsel = new THREE.Group();
+      engsel.position.set(-LEBAR / 2, 0, (TEBAL + SAMPUL) / 2);
+      const depan = buatSampul();
+      depan.position.x = LEBAR / 2;
+      tambahBalok(depan, rose, LEBAR - 0.16, TINGGI - 0.16, 0.01, 0, 0, -SAMPUL / 2); // sisi dalam sampul
+      engsel.add(depan);
+
+      // Lembar yang ikut membalik; disembunyikan selama buku tertutup
+      const lembarBalik = [0, 1, 2, 3].map(function (i) {
+        const poros = new THREE.Group();
+        poros.position.set(-LEBAR / 2 + 0.06, 0, TEBAL / 2 + 0.012 + (3 - i) * 0.006);
+        const lembar = new THREE.Mesh(
+          new THREE.PlaneGeometry(LEBAR - 0.2, TINGGI - 0.2),
+          new THREE.MeshLambertMaterial({ color: i % 2 ? 0xfffdfa : 0xfdf6ec, side: THREE.DoubleSide })
+        );
+        lembar.position.x = (LEBAR - 0.2) / 2;
+        poros.add(lembar);
+        poros.visible = false;
+        buku.add(poros);
+        return poros;
+      });
+      const belakang = buatSampul();
+      belakang.position.z = -(TEBAL + SAMPUL) / 2;
+      belakang.rotation.y = Math.PI;
+      buku.add(engsel, belakang);
+
+      const TINGGI_BUKU = 2.1; // ketinggian melayang di atas meja
+      buku.scale.setScalar(0.74);
+      buku.position.set(0, TINGGI_BUKU, -0.35);
+      buku.rotation.set(0.06, -0.5, 0);
+      panggung.add(buku);
+
+      // Titik bulat lembut: pusatnya pekat, tepinya transparan
+      function teksturTitik() {
+        const c = document.createElement("canvas");
+        c.width = c.height = 64;
+        const ctx = c.getContext("2d");
+        const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+        g.addColorStop(0, "rgba(255,255,255,1)");
+        g.addColorStop(0.4, "rgba(255,255,255,0.7)");
+        g.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 64, 64);
+        return new THREE.CanvasTexture(c);
+      }
+      const titik = teksturTitik();
+
+      /* 5b. MEJA BELAJAR RAMADHAN
+             Sumbu: x = kiri-kanan, y = atas-bawah, z = belakang-depan.
+             Permukaan meja berada di y = 0. Posisi benda diatur lewat taruh(). */
+      const RAPAT = layarKecil ? 0.8 : 1; // di HP benda dirapatkan supaya tetap besar
+
+      const kayu = bahan(0xfffaf4);
+      const kayuTua = bahan(0xf0dfc6);
+      const salju = bahan(0xfffefc);
+      const lavender = bahan(0xd3c7e6);
+      const sageTua = bahan(0x9dc2a6);
+
+      // Papan bersudut bulat, tegak menghadap depan
+      function papanBulat(lebar, tinggi, tebal, jari) {
+        const a = lebar / 2, b = tinggi / 2, q = new THREE.Shape();
+        q.moveTo(-a + jari, -b);
+        q.lineTo(a - jari, -b);
+        q.quadraticCurveTo(a, -b, a, -b + jari);
+        q.lineTo(a, b - jari);
+        q.quadraticCurveTo(a, b, a - jari, b);
+        q.lineTo(-a + jari, b);
+        q.quadraticCurveTo(-a, b, -a, b - jari);
+        q.lineTo(-a, -b + jari);
+        q.quadraticCurveTo(-a, -b, -a + jari, -b);
+        const geo = new THREE.ExtrudeGeometry(q, { depth: tebal, bevelEnabled: false, curveSegments: 10 });
+        geo.translate(0, 0, -tebal / 2);
+        return geo;
+      }
+
+      function tambahMesh(induk, geo, material, x, y, z) {
+        const m = new THREE.Mesh(geo, material);
+        m.position.set(x, y, z);
+        induk.add(m);
+        return m;
+      }
+
+      // Batang bulat dari titik A ke titik B
+      function batang(induk, material, jari, a, b) {
+        const dari = new THREE.Vector3().fromArray(a), ke = new THREE.Vector3().fromArray(b);
+        const arah = ke.clone().sub(dari);
+        const m = tambahMesh(induk, new THREE.CylinderGeometry(jari, jari, arah.length(), 14), material, 0, 0, 0);
+        m.position.copy(dari).addScaledVector(arah, 0.5);
+        m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), arah.normalize());
+      }
+
+      // Gambar 2D (layar laptop, HP, halaman) menjadi tekstur
+      function gambar(lebar, tinggi, lukis) {
+        const c = document.createElement("canvas");
+        c.width = lebar;
+        c.height = tinggi;
+        lukis(c.getContext("2d"), lebar, tinggi);
+        const t = new THREE.CanvasTexture(c);
+        t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        return new THREE.MeshBasicMaterial({ map: t });
+      }
+
+      // Bayangan oval lembut di atas meja
+      function bayangan(x, z, lebar, dalam, pekat) {
+        const m = tambahMesh(panggung, new THREE.PlaneGeometry(lebar, dalam),
+          new THREE.MeshBasicMaterial({ map: titik, color: 0xb59f86, transparent: true, opacity: pekat, depthWrite: false }),
+          x, 0.012, z);
+        m.rotation.x = -Math.PI / 2;
+      }
+
+      // Membuat grup benda, menaruhnya di meja, dan memberi bayangan
+      function taruh(x, z, putar, lebarBayang, dalamBayang) {
+        const g = new THREE.Group();
+        g.position.set(x * RAPAT, 0, z);
+        g.rotation.y = putar;
+        g.scale.setScalar(layarKecil ? 0.88 : 1);
+        panggung.add(g);
+        bayangan(x * RAPAT, z, lebarBayang, dalamBayang, 0.4);
+        return g;
+      }
+
+      // --- Meja
+      const lebarMeja = 8.4 * RAPAT;
+      const daun = tambahMesh(panggung, papanBulat(lebarMeja, 4.2, 0.2, 0.5), kayu, 0, -0.1, 0);
+      daun.rotation.x = -Math.PI / 2;
+      [-1, 1].forEach(function (sisi) {
+        [1.4, -1.4].forEach(function (z) {
+          batang(panggung, kayuTua, 0.1,
+            [sisi * (lebarMeja / 2 - 0.75), -0.2, z], [sisi * (lebarMeja / 2 - 0.55), -1.25, z]);
+        });
+      });
+
+      // --- Alas bundar di bawah buku jurnal
+      bayangan(0, -0.35, 2.9, 2.2, 0.4);
+      tambahMesh(panggung, new THREE.CylinderGeometry(0.8, 0.88, 0.1, 48), sage, 0, 0.06, -0.35);
+      tambahMesh(panggung, new THREE.CylinderGeometry(0.66, 0.66, 0.02, 48), salju, 0, 0.125, -0.35);
+
+      // --- Al-Qur'an terbuka di atas rehal
+      const rehal = taruh(-2.75, 0.35, 0.22, 2.1, 1.5);
+      const condong = new THREE.Group();
+      condong.position.y = 0.46;
+      condong.rotation.x = 0.42; // dimiringkan supaya halamannya terlihat
+      rehal.add(condong);
+
+      const halaman = gambar(256, 320, function (ctx, w, h) {
+        ctx.fillStyle = "#fffdf8";
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = "#dcb777";
+        ctx.lineWidth = 8;
+        ctx.strokeRect(16, 16, w - 32, h - 32);
+        ctx.strokeStyle = "#b7d3bc";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(30, 30, w - 60, h - 60);
+        ctx.fillStyle = "#cfc7bb"; // garis saja, bukan tulisan tiruan
+        for (let y = 60; y < h - 50; y += 26) ctx.fillRect(50, y, w - 100, 5);
+      });
+
+      [-1, 1].forEach(function (sisi) {
+        const sayap = new THREE.Group();
+        sayap.rotation.z = sisi * 0.5;
+        condong.add(sayap);
+        tambahBalok(sayap, kayuTua, 1.7, 0.07, 0.62, 0, 0, 0);            // papan rehal
+        tambahBalok(sayap, sageTua, 0.82, 0.05, 1.06, sisi * 0.44, 0.08, 0); // sampul
+        tambahBalok(sayap, salju, 0.77, 0.12, 0.99, sisi * 0.42, 0.16, 0);   // kertas
+        const lembar = tambahMesh(sayap, new THREE.PlaneGeometry(0.77, 0.99), halaman, sisi * 0.42, 0.226, 0);
+        lembar.rotation.x = -Math.PI / 2;
+      });
+
+      // --- Lampu belajar
+      const lampu = taruh(-3.45, -1.25, 0, 1.3, 0.9);
+      tambahMesh(lampu, new THREE.CylinderGeometry(0.4, 0.46, 0.1, 32), rose, 0, 0.05, 0);
+      batang(lampu, salju, 0.055, [0, 0.1, 0], [-0.2, 1.55, 0]);
+      batang(lampu, salju, 0.055, [-0.2, 1.55, 0], [0.62, 2.6, 0.1]);
+      tambahMesh(lampu, new THREE.SphereGeometry(0.1, 20, 16), emas, -0.2, 1.55, 0);
+      tambahMesh(lampu, new THREE.SphereGeometry(0.1, 20, 16), emas, 0.62, 2.6, 0.1);
+      const kap = new THREE.Group();
+      kap.position.set(0.74, 2.5, 0.14);
+      kap.rotation.z = 0.45;
+      lampu.add(kap);
+      const bahanKap = bahan(0xecc2d0);
+      bahanKap.side = THREE.DoubleSide;
+      tambahMesh(kap, new THREE.CylinderGeometry(0.13, 0.46, 0.5, 36, 1, true), bahanKap, 0, -0.18, 0);
+      tambahMesh(kap, new THREE.SphereGeometry(0.17, 20, 16), new THREE.MeshBasicMaterial({ color: 0xfff1cc }), 0, -0.34, 0);
+      const cahaya = tambahMesh(kap, new THREE.PlaneGeometry(2.6, 2.6),
+        new THREE.MeshBasicMaterial({ map: titik, color: 0xffe3a3, transparent: true, opacity: 0.4, depthWrite: false }), 0, -0.7, 0);
+      cahaya.rotation.z = -0.45;
+
+      // --- Laptop
+      const laptop = taruh(2.8, -0.35, -0.28, 2.6, 1.9);
+      const bodi = bahan(0xf3eff7);
+      const alas = tambahMesh(laptop, papanBulat(1.95, 1.25, 0.09, 0.12), bodi, 0, 0.05, 0.1);
+      alas.rotation.x = -Math.PI / 2;
+      const papanTik = tambahMesh(laptop, new THREE.PlaneGeometry(1.65, 0.6), gambar(256, 96, function (ctx, w, h) {
+        ctx.fillStyle = "#f3eff7";
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "#d3c7e6";
+        for (let b = 0; b < 4; b++) for (let k = 0; k < 12; k++) ctx.fillRect(5 + k * 21, 5 + b * 23, 16, 17);
+      }), 0, 0.1, 0);
+      papanTik.rotation.x = -Math.PI / 2;
+      const tutup = new THREE.Group();
+      tutup.position.set(0, 0.09, -0.5);
+      tutup.rotation.x = -0.22;
+      laptop.add(tutup);
+      tambahMesh(tutup, papanBulat(1.95, 1.3, 0.07, 0.12), lavender, 0, 0.65, 0);
+      tambahMesh(tutup, new THREE.PlaneGeometry(1.75, 1.1), gambar(512, 322, function (ctx, w, h) {
+        const g = ctx.createLinearGradient(0, 0, w, h);
+        g.addColorStop(0, "#f6f1fb");
+        g.addColorStop(0.5, "#fdf3f6");
+        g.addColorStop(1, "#eef6ee");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        lukisBulan(ctx, w / 2, h * 0.34, 46);
+        ctx.fillStyle = "#3f6650";
+        ctx.textAlign = "center";
+        ctx.font = "italic 40px Georgia, serif";
+        ctx.fillText("Space to Breathe", w / 2, h * 0.76);
+      }), 0, 0.65, 0.04);
+
+      // --- HP di dudukan
+      const hp = taruh(1.3, 1.3, -0.15, 1.1, 0.9);
+      tambahBalok(hp, kayuTua, 0.62, 0.12, 0.42, 0, 0.06, 0);
+      const telepon = new THREE.Group();
+      telepon.position.set(0, 0.1, 0.06);
+      telepon.rotation.x = -0.28;
+      hp.add(telepon);
+      tambahMesh(telepon, papanBulat(0.6, 1.16, 0.07, 0.12), rose, 0, 0.58, 0);
+      tambahMesh(telepon, new THREE.PlaneGeometry(0.5, 1.02), gambar(160, 326, function (ctx, w, h) {
+        const g = ctx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, "#fffaf2");
+        g.addColorStop(1, "#e2efe2");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        lukisBulan(ctx, w / 2, h * 0.28, 34);
+        ["#ecc2d0", "#d3c7e6", "#b7d3bc"].forEach(function (warnaBaris, i) {
+          ctx.fillStyle = warnaBaris;
+          ctx.fillRect(22, h * 0.5 + i * 46, w - 44, 28);
+        });
+      }), 0, 0.58, 0.04);
+
+      // --- Buku catatan dan pulpen
+      const catatan = taruh(-0.75, 1.35, 0.18, 1.9, 1.3);
+      const sampulCatatan = tambahMesh(catatan, papanBulat(1.35, 0.95, 0.12, 0.1), lavender, 0, 0.07, 0);
+      sampulCatatan.rotation.x = -Math.PI / 2;
+      const isiCatatan = tambahMesh(catatan, papanBulat(1.2, 0.82, 0.03, 0.08), salju, 0, 0.14, 0);
+      isiCatatan.rotation.x = -Math.PI / 2;
+      batang(catatan, sageTua, 0.05, [-0.45, 0.22, 0.18], [0.4, 0.22, -0.12]);
+      batang(catatan, emas, 0.056, [0.2, 0.22, -0.05], [0.26, 0.22, -0.07]);
+      const ujungPena = tambahMesh(catatan, new THREE.ConeGeometry(0.05, 0.16, 14), emas, -0.525, 0.22, 0.206);
+      ujungPena.rotation.set(0, 0.34, Math.PI / 2);
+
+      // --- Bulan sabit dan bintang menggantung
+      function gantung(geo, x, y, z) {
+        tambahMesh(panggung, geo, emas, x * RAPAT, y, z);
+        // Di HP tali dihilangkan supaya tidak melintasi logo
+        if (!layarKecil) batang(panggung, kayuTua, 0.012, [x, y + (geo === sabitKecil ? 0.41 : 0.15), z], [x, 12, z]);
+      }
+      const opsiGantung = { depth: 0.06, bevelEnabled: false, curveSegments: 30 };
+      const sabitKecil = new THREE.ExtrudeGeometry(bentukSabit(0.42), opsiGantung);
+      const bintangKecil = new THREE.ExtrudeGeometry(bentukBintang(0.2, 0.13), opsiGantung);
+      gantung(sabitKecil, 2.5, 3.1, -1);
+      gantung(bintangKecil, 1.7, 3.6, -1.1);
+      gantung(bintangKecil, 3.4, 3.5, -1.1);
+      gantung(bintangKecil, -1.75, 3.65, -1.1);
+
+      /* 6. PARTIKEL BINTANG — ratusan titik jauh lebih ringan bila digabung
+            dalam satu objek Points daripada dibuat satu per satu. */
+      const JUMLAH = layarKecil ? 260 : 600;
+      const LUAS_X = 56, LUAS_Y = 40;
+      const posisi = new Float32Array(JUMLAH * 3); // x, y, z tiap bintang
+      const warna = new Float32Array(JUMLAH * 3);  // r, g, b tiap bintang
+      const warnaPastel = [0xb7d3bc, 0xecc2d0, 0xefd3a0].map(function (w) { return new THREE.Color(w); });
+
+      for (let i = 0; i < JUMLAH; i++) {
+        posisi[i * 3] = (Math.random() - 0.5) * LUAS_X;
+        posisi[i * 3 + 1] = (Math.random() - 0.5) * LUAS_Y;
+        posisi[i * 3 + 2] = -4 - Math.random() * 14; // di belakang buku
+        warnaPastel[i % warnaPastel.length].toArray(warna, i * 3);
+      }
+
+      const geoBintangKecil = new THREE.BufferGeometry();
+      geoBintangKecil.setAttribute("position", new THREE.BufferAttribute(posisi, 3));
+      geoBintangKecil.setAttribute("color", new THREE.BufferAttribute(warna, 3));
+
+      scene.add(new THREE.Points(geoBintangKecil, new THREE.PointsMaterial({
+        size: 0.4, map: titik, vertexColors: true,
+        transparent: true, opacity: 0.9, depthWrite: false
+      })));
+
+      /* 7. UKURAN — meja dipaskan ke kotak .ruang-buku, jadi tidak pernah
+            menimpa tulisan di ukuran layar apa pun. */
+      const TENGAH_Y = 1.3; // titik yang dilihat kamera
+
+      function aturUkuran() {
+        const k = kanvas.getBoundingClientRect();
+        const r = ruangBuku.getBoundingClientRect();
+        if (!k.width || !k.height) return;
+
+        // 10% bawah canvas disisakan karena di HP bagian itu memudar
+        const atas = Math.max(r.top, k.top), bawah = Math.min(r.bottom, k.bottom - k.height * 0.1);
+        const tinggiRuang = Math.max(bawah - atas, 80);
+        const lebarRuang = Math.max(r.width, 80);
+
+        // Jarak kamera supaya kotak seluruh meja masuk ke ruangnya
+        const perTinggi = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+        const jarak = Math.max(
+          (6.1 * k.height) / (tinggiRuang * perTinggi),
+          (9.1 * RAPAT * k.height) / (lebarRuang * perTinggi)
+        );
+        // Kamera sedikit di atas supaya permukaan meja terlihat
+        camera.position.set(0, TENGAH_Y + jarak * Math.sin(0.25), jarak * Math.cos(0.25));
+        camera.lookAt(0, TENGAH_Y, 0);
+        camera.aspect = k.width / k.height;
+
+        // Geser gambar supaya pusat meja = pusat .ruang-buku
+        const cx = r.left - k.left + r.width / 2;
+        const cy = atas - k.top + tinggiRuang / 2;
+        camera.setViewOffset(k.width, k.height, k.width / 2 - cx, k.height / 2 - cy, k.width, k.height);
+
+        renderer.setSize(k.width, k.height, false);
+        renderer.render(scene, camera);
+      }
+
+      /* 8. ANIMASI LOOP — browser memanggil ini sekitar 60x per detik dan
+            otomatis berhenti saat tab tidak dilihat. "detik" adalah selisih
+            waktu antarframe, jadi kecepatannya sama di semua perangkat. */
+      /* 7b. MEMBUKA BUKU — dibagi menjadi tiga babak (dalam detik):
+             0.0 - 1.1  buku berhenti berputar, menghadap kita, dan mendekat
+             0.9 - 2.1  sampul terbuka, lembar membalik satu per satu
+             1.9 - 2.8  kamera masuk ke halaman, layar menjadi putih */
+      let buka = null;
+      const halus = function (t) { t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); };
+      const campur = function (a, b, t) { return a + (b - a) * t; };
+      const TUJUAN_BUKU = new THREE.Vector3(0, TENGAH_Y + 0.2, 1.6);
+
+      function perbaruiBuka(detik) {
+        const b = buka;
+        b.t += detik;
+
+        const dekat = halus(b.t / 1.1);
+        buku.position.lerpVectors(b.posisi, TUJUAN_BUKU, dekat);
+        buku.scale.setScalar(campur(0.74, 0.95, dekat));
+        buku.rotation.x = campur(0.06, -0.25, dekat); // menghadap kamera yang agak di atas
+        buku.rotation.y = campur(b.putar, b.putarTujuan, dekat);
+        panggung.rotation.y = campur(b.ayun, 0, dekat);
+
+        engsel.rotation.y = -2.75 * halus((b.t - 0.9) / 0.9);
+        lembarBalik.forEach(function (l, i) {
+          const mulai = 1.15 + i * 0.16;
+          l.visible = b.t > 0.95;
+          l.rotation.y = -2.68 * halus((b.t - mulai) / 0.7);
+          if (!b.bunyi[i] && b.t > mulai) { b.bunyi[i] = true; Suara.kertas(); }
+        });
+
+        const masuk = halus((b.t - 1.7) / 1.1);
+        camera.position.lerpVectors(b.kamera, b.kameraTujuan, masuk);
+        if (b.t > 2.1) document.getElementById("tirai").classList.add("tutup");
+        if (b.t > 2.8 && b.selesai) {
+          const selesai = b.selesai;
+          b.selesai = null;
+          selesai();
+        }
+      }
+
+      const jam = new THREE.Clock();
+      let waktu = 0;
+
+      function animasi() {
+        const detik = Math.min(jam.getDelta(), 0.1);
+
+        waktu += detik;
+
+        if (buka) {
+          perbaruiBuka(detik);
+        } else {
+          buku.rotation.y += detik * 0.35; // satu putaran sekitar 18 detik
+          buku.position.y = TINGGI_BUKU + Math.sin(waktu * 1.2) * 0.06; // melayang naik turun
+          panggung.rotation.y = Math.sin(waktu * 0.3) * 0.06;           // meja berayun tipis
+        }
+
+        for (let i = 1; i < posisi.length; i += 3) {
+          posisi[i] += detik * 0.12; // bintang naik pelan
+          if (posisi[i] > LUAS_Y / 2) posisi[i] -= LUAS_Y; // muncul lagi dari bawah
+        }
+        geoBintangKecil.attributes.position.needsUpdate = true;
+
+        renderer.render(scene, camera);
+      }
+
+      aturUkuran();
+      const pengamat = new ResizeObserver(aturUkuran);
+      pengamat.observe(kanvas);
+      pengamat.observe(ruangBuku);
+
+      // Kalau kartu grafis bermasalah di tengah jalan, pakai gradient pastel
+      kanvas.addEventListener("webglcontextlost", function () {
+        renderer.setAnimationLoop(null);
+        bukaBuku3D = null;
+        kanvas.classList.remove("siap");
+        pakaiGradient("Kartu grafis berhenti");
+      });
+
+      // Pengguna yang meminta "kurangi gerakan" melihat buku diam
+      if (!kurangiGerak) {
+        renderer.setAnimationLoop(animasi);
+        bukaBuku3D = function (selesai) {
+          const penuh = Math.PI * 2;
+          const tengahBuku = TUJUAN_BUKU.clone();
+          buka = {
+            t: 0,
+            posisi: buku.position.clone(),
+            putar: buku.rotation.y,
+            putarTujuan: Math.round(buku.rotation.y / penuh) * penuh, // sampul depan, jalan terpendek
+            ayun: panggung.rotation.y,
+            kamera: camera.position.clone(),
+            kameraTujuan: camera.position.clone().lerp(tengahBuku, 0.72),
+            bunyi: [],
+            selesai: selesai
+          };
+          // Cadangan kalau animasi terhenti, misalnya tab disembunyikan
+          setTimeout(function () {
+            if (buka.selesai) { const s = buka.selesai; buka.selesai = null; s(); }
+          }, 5000);
+        };
+      }
+
+      kanvas.classList.add("siap");
+    }
+
+    /* ============ C. MEMUAT THREE.JS + FALLBACK ============ */
+
+    function pakaiGradient(alasan) {
+      document.querySelector(".cover").classList.add("tanpa-3d");
+      console.info(alasan + ", memakai gradient.");
+    }
+
+    // Dimuat terpisah supaya tulisan dan tombol tidak menunggu internet
+    const skrip = document.createElement("script");
+    skrip.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+    skrip.onload = function () {
+      try {
+        mulaiCover3D();
+      } catch (err) {
+        pakaiGradient("Cover 3D tidak didukung");
+      }
+    };
+    skrip.onerror = function () {
+      pakaiGradient("Three.js tidak termuat");
+    };
+    document.head.appendChild(skrip);
+  </script>
+</body>
+</html>

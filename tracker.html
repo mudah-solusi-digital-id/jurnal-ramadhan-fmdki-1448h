@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Amalan Tracker | Jurnal Ramadhan 1448 H</title>
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="print.css">
+  <style>
+    /* Gaya khusus tracker */
+    body { background: #fffdfa; } /* putih hangat */
+    .page { max-width: 960px; }
+
+    .judul-bagian {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+
+    .judul-bagian img { flex: none; width: 44px; height: 44px; }
+    .judul-bagian h2 { margin: 0; }
+
+    .kartu-hijau { border: 2px solid var(--sage); }
+    .kartu-emas { border: 2px solid var(--honey); }
+    .kartu-rose { border: 2px solid var(--rose); }
+
+    .hitungan { font-weight: 600; }
+
+    /* Status simpan menempel di bawah layar supaya selalu terlihat */
+    .status {
+      position: sticky;
+      bottom: var(--space-3);
+      z-index: 50;
+      width: fit-content;
+      margin: 0 auto;
+      padding: var(--space-2) var(--space-4);
+      border-radius: 999px;
+      background: var(--green);
+      color: #ffffff;
+      font-size: 0.9rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .status.tampil { opacity: 1; }
+    .status.gagal { background: #a03a52; }
+
+    /* --- Bagian 1: tabel --- */
+    .gulir {
+      max-height: 75vh;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+
+    .tabel {
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 100%;
+    }
+
+    .tabel th,
+    .tabel td {
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 0;
+      text-align: center;
+    }
+
+    /* Angka hari di atas */
+    .tabel thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      height: 44px;
+      background: var(--sage-light);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    /* Nama amalan di kiri, tetap terlihat saat tabel digeser */
+    .tabel .kolom-amalan {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      width: 150px;
+      min-width: 150px;
+      padding: 0 var(--space-3);
+      background: var(--sage-light);
+      font-size: 0.9rem;
+      font-weight: 600;
+      line-height: 1.25;
+      text-align: left;
+    }
+
+    .tabel .kolom-amalan.wajib { background: var(--honey-light); }
+    .tabel .kolom-amalan.lain { background: var(--lav-light); }
+    .tabel thead .kolom-amalan { z-index: 3; background: var(--sage); }
+
+    /* Checkbox memenuhi seluruh sel, jadi area kliknya besar */
+    .tabel input {
+      display: block;
+      width: 100%;
+      min-width: 44px;
+      height: 44px;
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+      background: #ffffff center / 20px no-repeat;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    .tabel tr:nth-child(even) input { background-color: #fcfaf6; }
+
+    .tabel input:hover { background-color: var(--sage-light); }
+
+    .tabel tr input:checked,
+    .kotak:checked {
+      background-color: #86ae92;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%230d1f18' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 10.5 4 4 8-9'/%3E%3C/svg%3E");
+    }
+
+    .tabel input:focus-visible { outline-offset: -3px; }
+
+    /* --- Bagian 2: tilawah --- */
+    .daftar-tilawah {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr));
+      gap: 0 var(--space-5);
+      margin: var(--space-4) 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .daftar-tilawah li {
+      display: grid;
+      grid-template-columns: 62px 1fr auto;
+      align-items: center;
+      gap: var(--space-2);
+      min-height: 52px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    .daftar-tilawah strong { color: var(--heading); }
+    .daftar-tilawah label { display: flex; align-items: center; gap: var(--space-2); }
+    .label-khatam { min-height: 44px; cursor: pointer; }
+
+    .halaman {
+      width: 68px;
+      min-height: 40px;
+      border: 1.5px solid var(--field-line);
+      border-radius: var(--radius-sm);
+      background: #ffffff;
+      color: var(--text);
+      font: inherit;
+      text-align: center;
+    }
+
+    .kotak {
+      width: 24px;
+      height: 24px;
+      margin: 0;
+      border: 1.5px solid var(--field-line);
+      border-radius: 7px;
+      background: #ffffff center / 16px no-repeat;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    /* --- Bagian 3: sedekah --- */
+    .daftar-koin {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+      justify-items: center;
+      gap: var(--space-3);
+      margin: var(--space-4) 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .koin {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      padding: 0;
+      border: 2px dashed #d4a45c;
+      border-radius: 50%;
+      background: #ffffff;
+      color: var(--accent);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .koin:hover { transform: scale(1.06); }
+
+    .koin[aria-pressed="true"] {
+      border: 3px solid #b98a3f;
+      background: radial-gradient(circle at 35% 30%, #fbeed6, var(--gold) 75%);
+      color: var(--green-deep);
+      box-shadow: inset 0 0 0 3px #f5e9c8;
+    }
+
+    .aksi { margin-top: var(--space-5); text-align: center; }
+
+    @media (max-width: 480px) {
+      .tabel .kolom-amalan { width: 116px; min-width: 116px; padding: 0 var(--space-2); font-size: 0.82rem; }
+      .hanya-lebar { display: none; }
+    }
+
+    /* --- Cetak: lembar 1 = shalat, lembar 2 = tilawah + sedekah --- */
+    @media print {
+      body { background: #ffffff; }
+      .page-header { padding: 2.5mm; margin-bottom: 3mm; }
+      .page-header .quote { display: none; }
+      .page-header h1 { font-size: 14pt; margin: 0; }
+      .page-header .logo-bar { margin-bottom: 1mm; }
+      .page-header .logo-bar img { height: 7mm; }
+      .card { padding: 3mm; margin-bottom: 3mm; }
+      .judul-bagian { margin-bottom: 1mm; }
+      .judul-bagian img { width: 7mm; height: 7mm; }
+      .judul-bagian h2 { font-size: 12pt; }
+      .hitungan { margin-bottom: 1.5mm; font-size: 8.5pt; }
+      .petunjuk { display: none; }
+
+      .gulir { max-height: none; overflow: visible; border-radius: 0; }
+      .tabel { width: 100%; table-layout: fixed; }
+      .tabel thead th { position: static; height: 5mm; font-size: 5.5pt; }
+      .tabel .kolom-amalan { position: static; width: 30mm; min-width: 0; padding: 0 1mm; font-size: 7.5pt; }
+      .tabel input { min-width: 0; height: 6.8mm; background-size: 2.2mm; }
+
+      .daftar-tilawah { grid-template-columns: 1fr 1fr; gap: 0 5mm; margin-top: 2mm; }
+      .daftar-tilawah li { grid-template-columns: 13mm 1fr auto; min-height: 6.4mm; gap: 1mm; font-size: 8pt; }
+      .label-khatam { min-height: 0; }
+      .halaman { width: 11mm; min-height: 5mm; padding: 0; border-radius: 1mm; font-size: 8pt; appearance: textfield; -moz-appearance: textfield; }
+      .halaman::-webkit-inner-spin-button { display: none; }
+      .kotak { width: 4mm; height: 4mm; border-radius: 1mm; background-size: 3mm; }
+      .progress { height: 2.5mm; }
+
+      .daftar-koin { grid-template-columns: repeat(10, 1fr); gap: 1.5mm; margin-top: 2mm; }
+      .koin { display: flex !important; width: 9mm; height: 9mm; font-size: 8pt; border-width: 0.4mm; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-bar" aria-label="Navigasi utama">
+    <a class="nav-title" href="index.html">Jurnal Ramadhan</a>
+    <a href="menu.html">Menu</a>
+    <a href="profil.html">Profil</a>
+    <a href="tracker.html" aria-current="page">Tracker</a>
+  </nav>
+
+  <main class="page">
+    <section class="journal-page">
+      <header class="page-header page-header-hias">
+        <div class="logo-bar">
+          <img src="assets/logo-fmdki.png" alt="Logo FMDKI">
+          <img src="assets/logo-karimah.png" alt="Logo KARIMAH">
+        </div>
+        <h1>Amalan Tracker</h1>
+        <p class="quote">30 hari Ramadhan 1448 H, pelan-pelan asal konsisten</p>
+      </header>
+
+      <div class="card kartu-hijau">
+        <div class="judul-bagian">
+          <img src="assets/ikon-ceklis.svg" alt="">
+          <h2 id="judulShalat">Checklist Amalan Harian</h2>
+        </div>
+        <p class="hitungan" id="hitungShalat"></p>
+        <p class="text-soft petunjuk">Geser tabel ke samping untuk melihat semua hari. Isian tersimpan otomatis.</p>
+        <div class="gulir" role="region" aria-labelledby="judulShalat" tabindex="0">
+          <table class="tabel">
+            <thead><tr id="kepalaTabel"><th class="kolom-amalan" scope="col">Amalan / Hari</th></tr></thead>
+            <tbody id="isiTabel"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="journal-page">
+      <div class="card kartu-emas">
+        <div class="judul-bagian">
+          <img src="assets/ikon-quran.svg" alt="">
+          <h2>Tilawah Tracker</h2>
+        </div>
+        <p class="hitungan" id="hitungTilawah"></p>
+        <progress class="progress" id="batangTilawah" value="0" max="604" aria-labelledby="hitungTilawah"></progress>
+        <ol class="daftar-tilawah" id="daftarTilawah"></ol>
+      </div>
+
+      <div class="card kartu-rose">
+        <div class="judul-bagian">
+          <img src="assets/ikon-hati.svg" alt="">
+          <h2>Sedekah Tracker</h2>
+        </div>
+        <p class="hitungan" id="hitungSedekah"></p>
+        <p class="text-soft petunjuk">Klik koin di hari kamu bersedekah, sekecil apa pun.</p>
+        <ol class="daftar-koin" id="daftarKoin"></ol>
+      </div>
+
+      <p class="aksi"><button class="btn-primary" type="button" id="tombolCetak">Cetak Tracker</button></p>
+    </section>
+
+    <p class="status no-print" id="status" role="status"></p>
+  </main>
+
+  <script src="transisi.js"></script>
+  <script src="storage.js"></script>
+  <script src="tracker-data.js"></script>
+  <script>
+    /* ============ 1. DAFTAR AMALAN ada di tracker-data.js ============ */
+    const HALAMAN_MUSHAF = 604; // satu mushaf standar
+
+    const el = function (id) { return document.getElementById(id); };
+
+    /* ============ 2. DATA ============
+       Bentuknya: { shalat:  { "1-subuh": true },
+                    tilawah: { "1": 5 },
+                    khatam:  { "1": true },
+                    sedekah: { "1": true } }
+       Yang belum diisi tidak disimpan. */
+    let data;
+
+    function muatData() {
+      const tersimpan = loadTracker();
+      data = {};
+      ["shalat", "tilawah", "khatam", "sedekah"].forEach(function (bagian) {
+        const isi = tersimpan[bagian];
+        data[bagian] = isi && typeof isi === "object" && !Array.isArray(isi) ? isi : {};
+      });
+    }
+
+    // Mengubah apa pun menjadi bilangan bulat 0 sampai 604
+    function angkaHalaman(nilai) {
+      const angka = Math.floor(Number(nilai));
+      return angka > 0 ? Math.min(angka, HALAMAN_MUSHAF) : 0;
+    }
+
+    // Menyimpan nilai, atau menghapusnya kalau kosong
+    function ubah(bagian, kunci, nilai) {
+      if (nilai) data[bagian][kunci] = nilai;
+      else delete data[bagian][kunci];
+      simpan();
+    }
+
+    /* ============ 3. SIMPAN OTOMATIS ============ */
+    let jedaStatus;
+
+    function simpan() {
+      const berhasil = saveTracker(data);
+      el("status").textContent = berhasil ? "Tersimpan otomatis" : "Gagal menyimpan. Memori penuh atau diblokir.";
+      el("status").classList.toggle("gagal", !berhasil);
+      el("status").classList.add("tampil");
+      clearTimeout(jedaStatus);
+      jedaStatus = setTimeout(function () { el("status").classList.remove("tampil"); }, berhasil ? 1200 : 6000);
+      hitung();
+    }
+
+    /* ============ 4. MEMBUAT TAMPILAN (sekali, saat halaman dibuka) ============ */
+    function buat(tag, atribut, induk) {
+      const e = document.createElement(tag);
+      Object.entries(atribut).forEach(function (pasangan) {
+        if (pasangan[0] === "teks") e.textContent = pasangan[1];
+        else e.setAttribute(pasangan[0], pasangan[1]);
+      });
+      if (induk) induk.appendChild(e);
+      return e;
+    }
+
+    function buatTampilan() {
+      // Kepala tabel: angka hari. Tiap baris: satu amalan.
+      for (let hari = 1; hari <= JUMLAH_HARI; hari++) {
+        buat("th", { scope: "col", teks: hari }, el("kepalaTabel"));
+      }
+
+      AMALAN_TRACKER.forEach(function (a) {
+        const baris = buat("tr", {}, el("isiTabel"));
+        buat("th", { scope: "row", class: "kolom-amalan " + (a.jenis || ""), teks: a.nama }, baris);
+        for (let hari = 1; hari <= JUMLAH_HARI; hari++) {
+          const td = buat("td", {}, baris);
+          buat("input", {
+            type: "checkbox",
+            "data-kunci": hari + "-" + a.kunci,
+            "aria-label": a.nama + " hari " + hari,
+            autocomplete: "off"
+          }, td);
+        }
+      });
+
+      for (let hari = 1; hari <= JUMLAH_HARI; hari++) {
+        const li = buat("li", {}, el("daftarTilawah"));
+        buat("strong", { teks: "Hari " + hari }, li);
+        const labelHalaman = buat("label", {}, li);
+        buat("input", {
+          type: "number", class: "halaman", min: 0, max: HALAMAN_MUSHAF, step: 1,
+          inputmode: "numeric", "data-hari": hari,
+          "aria-label": "Halaman tilawah hari " + hari, autocomplete: "off"
+        }, labelHalaman);
+        buat("span", { teks: "hal." }, labelHalaman);
+        const labelKhatam = buat("label", { class: "label-khatam" }, li);
+        buat("input", {
+          type: "checkbox", class: "kotak", "data-hari": hari,
+          "aria-label": "Khatam hari " + hari, autocomplete: "off"
+        }, labelKhatam);
+        const teksKhatam = buat("span", { teks: "Khatam" }, labelKhatam);
+        buat("span", { class: "hanya-lebar", teks: " hari ini" }, teksKhatam);
+
+        const tempat = buat("li", {}, el("daftarKoin"));
+        buat("button", {
+          type: "button", class: "koin", "data-hari": hari, "aria-pressed": "false",
+          "aria-label": "Sedekah hari " + hari, teks: hari
+        }, tempat);
+      }
+    }
+
+    /* ============ 5. MENAMPILKAN DATA TERSIMPAN ============ */
+    function tampilkan() {
+      document.querySelectorAll(".tabel input").forEach(function (i) {
+        i.checked = data.shalat[i.dataset.kunci] === true;
+      });
+      document.querySelectorAll(".halaman").forEach(function (i) {
+        i.value = angkaHalaman(data.tilawah[i.dataset.hari]) || "";
+      });
+      document.querySelectorAll(".kotak").forEach(function (i) {
+        i.checked = data.khatam[i.dataset.hari] === true;
+      });
+      document.querySelectorAll(".koin").forEach(function (k) {
+        k.setAttribute("aria-pressed", data.sedekah[k.dataset.hari] === true);
+      });
+      hitung();
+    }
+
+    // Dihitung dari tampilan, jadi data asing di penyimpanan tidak ikut terhitung
+    function hitung() {
+      const jumlah = function (pilih) { return document.querySelectorAll(pilih).length; };
+
+      el("hitungShalat").textContent =
+        jumlah(".tabel input:checked") + " dari " + JUMLAH_HARI * AMALAN_TRACKER.length + " amalan tercentang";
+
+      let total = 0;
+      document.querySelectorAll(".halaman").forEach(function (i) { total += angkaHalaman(i.value); });
+      el("hitungTilawah").textContent =
+        total + " halaman (1 mushaf = " + HALAMAN_MUSHAF + " halaman). Khatam: " + jumlah(".kotak:checked") + " kali.";
+      el("batangTilawah").value = Math.min(total, HALAMAN_MUSHAF);
+
+      el("hitungSedekah").textContent =
+        jumlah('.koin[aria-pressed="true"]') + " hari sedekah dari " + JUMLAH_HARI + " hari";
+    }
+
+    /* ============ 6. EVENT LISTENER ============
+       Event delegation: cukup satu listener di induk, bukan 480 listener di
+       tiap checkbox. Event dari checkbox "naik" ke induknya, lalu e.target
+       memberi tahu checkbox mana yang diubah. */
+
+    // Tabel: "change" terjadi saat checkbox dicentang atau dilepas
+    el("isiTabel").addEventListener("change", function (e) {
+      ubah("shalat", e.target.dataset.kunci, e.target.checked);
+    });
+
+    // Tilawah: "input" terjadi tiap ketikan, dan juga saat checkbox diubah
+    el("daftarTilawah").addEventListener("input", function (e) {
+      const i = e.target;
+      if (i.classList.contains("kotak")) ubah("khatam", i.dataset.hari, i.checked);
+      else ubah("tilawah", i.dataset.hari, angkaHalaman(i.value));
+    });
+
+    // Setelah selesai mengetik, angka di luar batas dirapikan (misalnya -3 atau 900)
+    el("daftarTilawah").addEventListener("change", function (e) {
+      if (e.target.classList.contains("halaman")) e.target.value = angkaHalaman(e.target.value) || "";
+    });
+
+    // Sedekah: klik koin membalik statusnya
+    el("daftarKoin").addEventListener("click", function (e) {
+      const koin = e.target.closest(".koin");
+      if (!koin) return;
+      const sudah = koin.getAttribute("aria-pressed") !== "true";
+      koin.setAttribute("aria-pressed", sudah);
+      ubah("sedekah", koin.dataset.hari, sudah);
+    });
+
+    el("tombolCetak").addEventListener("click", function () { window.print(); });
+
+    // Kalau tracker diubah di tab lain, tab ini ikut diperbarui
+    window.addEventListener("storage", function (e) {
+      if (e.key === KUNCI_TRACKER || e.key === null) { muatData(); tampilkan(); }
+    });
+
+    /* ============ 7. MULAI ============ */
+    buatTampilan();
+    // pageshow: saat halaman dibuka dan saat kembali lewat tombol "back"
+    window.addEventListener("pageshow", function () { muatData(); tampilkan(); });
+  </script>
+</body>
+</html>

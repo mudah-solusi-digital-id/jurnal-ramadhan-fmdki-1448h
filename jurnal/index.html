@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Jurnal 30 Hari | Jurnal Ramadhan 1448 H</title>
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../print.css">
+  <style>
+    /* Gaya khusus daftar 30 hari */
+    .keterangan {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2) var(--space-5);
+      margin: var(--space-3) 0 0;
+      font-size: 0.9rem;
+    }
+
+    .keterangan span { display: inline-flex; align-items: center; gap: var(--space-2); }
+
+    .keterangan i {
+      width: 18px;
+      height: 18px;
+      border-radius: 6px;
+      background: #ecebe8;
+      border: 1.5px solid #cfcdc7;
+    }
+
+    .keterangan .contoh-terisi { border-color: #86ae92; background: var(--sage); }
+
+    .daftar {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: var(--space-3);
+      margin: 0 0 var(--space-5);
+      padding: 0;
+      list-style: none;
+    }
+
+    @media (min-width: 720px) {
+      .daftar { grid-template-columns: repeat(5, 1fr); }
+    }
+
+    /* Belum diisi: abu-abu */
+    .tombol-hari {
+      display: block;
+      height: 100%;
+      min-height: 72px;
+      padding: var(--space-3) var(--space-4);
+      border: 1.5px solid #cfcdc7;
+      border-radius: 16px;
+      background: #f4f3f1;
+      color: #4f544f;
+      text-decoration: none;
+    }
+
+    .tombol-hari:hover { border-color: var(--green-mid); }
+    .tombol-hari strong { display: block; }
+    .tombol-hari small { font-size: 0.85rem; }
+
+    /* Sudah diisi: hijau dan bertanda centang */
+    .tombol-hari.terisi {
+      border-color: #86ae92;
+      background: var(--sage);
+      color: var(--green-deep);
+    }
+
+    .tombol-hari.terisi strong::after { content: " \2713"; }
+
+    @media print {
+      .daftar { grid-template-columns: repeat(5, 1fr); gap: 1.5mm; margin-bottom: 3mm; }
+      .tombol-hari { min-height: 0; padding: 1.5mm; font-size: 7.5pt; border-radius: 2mm; }
+      .tombol-hari small { display: block; font-size: 6.5pt; line-height: 1.25; }
+      .card { padding: 2.5mm 3mm; margin-bottom: 3mm; }
+      .card p { margin: 0 0 1mm; font-size: 8.5pt; }
+      .card .keterangan { margin: 1.5mm 0 0; }
+      h2 { margin-bottom: 1.5mm; font-size: 11pt; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-bar" aria-label="Navigasi utama">
+    <a class="nav-title" href="../index.html">Jurnal Ramadhan</a>
+    <a href="../menu.html">Menu</a>
+    <a href="index.html" aria-current="page">30 Hari</a>
+    <a href="../tracker.html">Tracker</a>
+  </nav>
+
+  <main class="page">
+    <header class="page-header page-header-hias">
+      <div class="logo-bar">
+        <img src="../assets/logo-fmdki.png" alt="Logo FMDKI">
+        <img src="../assets/logo-karimah.png" alt="Logo KARIMAH">
+      </div>
+      <h1>Jurnal 30 Hari</h1>
+      <p class="quote">Satu hari, satu langkah pulang</p>
+    </header>
+
+    <section class="card">
+      <p id="teksProgres"></p>
+      <progress class="progress" id="batangProgres" value="0" max="30" aria-labelledby="teksProgres"></progress>
+      <p class="keterangan">
+        <span><i class="contoh-terisi"></i>Sudah diisi</span>
+        <span><i></i>Belum diisi</span>
+      </p>
+    </section>
+
+    <!-- Daftar per level dibuat JavaScript -->
+    <div id="semuaLevel"></div>
+  </main>
+
+  <script src="../transisi.js"></script>
+  <script src="data.js"></script>
+  <script src="../storage.js"></script>
+  <script>
+    const tempat = document.getElementById("semuaLevel");
+
+    /* 1. Membuat daftar dari data.js */
+    Object.keys(LEVEL).forEach(function (nomor) {
+      const level = LEVEL[nomor];
+      const judul = document.createElement("h2");
+      judul.textContent = "Level " + nomor + ": " + level.nama;
+      const daftar = document.createElement("ol");
+      daftar.className = "daftar";
+
+      for (let hari = level.dari; hari <= level.sampai; hari++) {
+        const li = document.createElement("li");
+        const link = document.createElement("a");
+        link.className = "tombol-hari";
+        link.href = "template.html?hari=" + hari;
+        link.dataset.hari = hari;
+        const tebal = document.createElement("strong");
+        tebal.textContent = "Hari " + hari;
+        const kecil = document.createElement("small");
+        kecil.textContent = JURNAL[hari].judul;
+        link.append(tebal, kecil);
+        li.appendChild(link);
+        daftar.appendChild(li);
+      }
+      tempat.append(judul, daftar);
+    });
+
+    /* 2. Mewarnai sesuai isian di localStorage */
+    function tampilkan() {
+      document.querySelectorAll(".tombol-hari").forEach(function (link) {
+        const hari = Number(link.dataset.hari);
+        const terisi = jurnalTerisi(hari);
+        link.classList.toggle("terisi", terisi);
+        link.setAttribute("aria-label",
+          "Hari " + hari + ", " + JURNAL[hari].judul + ", " + (terisi ? "sudah diisi" : "belum diisi"));
+      });
+      const jumlah = jumlahHariTerisi();
+      document.getElementById("teksProgres").textContent =
+        "Kamu sudah mengisi " + jumlah + " dari " + JUMLAH_HARI + " hari jurnal";
+      document.getElementById("batangProgres").value = jumlah;
+    }
+
+    window.addEventListener("pageshow", tampilkan);
+    window.addEventListener("storage", tampilkan);
+  </script>
+</body>
+</html>
